@@ -2,10 +2,11 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
-import { Plus, Edit, Trash2, MapPin, ExternalLink, Info } from 'lucide-react';
+import { Plus, Edit, Trash2, MapPin, ExternalLink } from 'lucide-react';
 import { SPPGModal } from './SPPGModal';
 import { deleteSPPG } from './actions';
 import { getSppgStatusLabel } from '@/lib/constants/sppg-status';
+import { DataTable, Column } from '@/components/DataTable';
 
 interface SPPGClientProps {
   sppgs: any[];
@@ -49,9 +50,120 @@ export function SPPGClient({ sppgs: initialSppgs, investors, provinces }: SPPGCl
     }
   };
 
+  const columns: Column<any>[] = [
+    {
+      header: 'SPPG Info',
+      accessorKey: 'id',
+      sortable: true,
+      cell: (sppg) => (
+        <div className="flex flex-col">
+          <span className="text-sm font-bold text-gray-900 uppercase">{sppg.id}</span>
+          <span className="text-[10px] text-gray-500 mt-0.5">Updated: {new Date(sppg.updatedAt).toLocaleDateString()}</span>
+        </div>
+      )
+    },
+    {
+      header: 'Location',
+      accessorKey: 'villageName',
+      sortable: true,
+      cell: (sppg) => (
+        <div className="flex flex-col">
+          <div className="flex items-center text-sm text-gray-900 font-medium">
+            <MapPin size={14} className="mr-1 text-red-500" />
+            {sppg.villageName || 'Unknown Village'}
+          </div>
+          <div className="text-[11px] text-gray-500 mt-0.5 pl-5">
+            {sppg.districtName}, {sppg.regencyName}
+          </div>
+        </div>
+      )
+    },
+    {
+      header: 'Investor',
+      accessorKey: 'investor.name',
+      sortable: true,
+      cell: (sppg) => (
+        <div className="flex flex-col">
+          <div className="text-sm text-gray-900 font-medium">{sppg.investor?.name || <span className="text-gray-400 italic">Not Assigned</span>}</div>
+          <span className="text-[10px] text-gray-400 font-mono">{sppg.investor?.investorCode || ''}</span>
+        </div>
+      )
+    },
+    {
+      header: 'Status & Progress',
+      accessorKey: 'status',
+      sortable: true,
+      cell: (sppg) => (
+        <div className="flex flex-col items-start min-w-[150px]">
+          <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold border ${getStatusColor(sppg.status)}`}>
+            {getSppgStatusLabel(sppg.status)}
+          </span>
+          <div className="w-full mt-2 bg-gray-100 rounded-full h-1.5 overflow-hidden">
+            <div 
+                className="bg-blue-600 h-1.5 rounded-full transition-all duration-500" 
+                style={{ width: `${sppg.preparationPercent || 0}%` }}
+            ></div>
+          </div>
+          <span className="text-[10px] text-gray-500 mt-0.5 font-medium">{sppg.preparationPercent || 0}% Complete</span>
+        </div>
+      )
+    },
+    {
+      header: 'Actions',
+      className: 'text-right',
+      cell: (sppg) => (
+        <div className="flex justify-end items-center space-x-2">
+          <Link 
+            href={`/admin/sppg/${sppg.id}`}
+            className="p-2 text-gray-600 hover:bg-gray-100 rounded-lg transition-colors"
+            title="View Details"
+          >
+            <ExternalLink size={18} />
+          </Link>
+          <button 
+            onClick={(e) => { e.stopPropagation(); handleOpenEdit(sppg); }}
+            className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
+            title="Edit SPPG"
+          >
+            <Edit size={18} />
+          </button>
+          <button 
+            onClick={(e) => { e.stopPropagation(); handleDelete(sppg.id); }}
+            disabled={loading === sppg.id}
+            className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors disabled:opacity-50"
+            title="Delete SPPG"
+          >
+            <Trash2 size={18} />
+          </button>
+        </div>
+      )
+    }
+  ];
+
+  const sppgFilters = [
+    {
+      label: 'Status',
+      field: 'status',
+      options: [
+        { label: 'Assign Investor', value: '1' },
+        { label: 'Pendaftaran', value: '2' },
+        { label: 'Persiapan', value: '3' },
+        { label: 'Validasi Persiapan', value: '4' },
+        { label: 'Appraisal', value: '5' },
+        { label: 'Validasi Pendaftaran', value: '6' },
+        { label: 'Sewa', value: '7' }
+      ]
+    },
+    {
+      label: 'Investor',
+      field: 'investorId',
+      options: investors.map(i => ({ label: i.name, value: i.id }))
+    }
+  ];
+
   return (
-    <div>
-      <div className="flex justify-between items-center mb-6">
+    <div className="space-y-6">
+      <div className="flex justify-between items-center">
         <div>
           <h1 className="text-2xl font-bold text-gray-900">SPPG Management</h1>
           <p className="text-gray-500">Manage nutritional food processing units</p>
@@ -65,99 +177,13 @@ export function SPPGClient({ sppgs: initialSppgs, investors, provinces }: SPPGCl
         </button>
       </div>
 
-      <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
-        <div className="overflow-x-auto">
-          <table className="min-w-full divide-y divide-gray-200">
-            <thead className="bg-gray-50">
-              <tr>
-                <th className="px-6 py-4 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">SPPG Info</th>
-                <th className="px-6 py-4 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Location</th>
-                <th className="px-6 py-4 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Investor</th>
-                <th className="px-6 py-4 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Status & Progress</th>
-                <th className="px-6 py-4 text-right text-xs font-semibold text-gray-500 uppercase tracking-wider">Actions</th>
-              </tr>
-            </thead>
-            <tbody className="bg-white divide-y divide-gray-200">
-              {initialSppgs.length === 0 ? (
-                <tr>
-                  <td colSpan={5} className="px-6 py-12 text-center text-gray-500">
-                    <div className="flex flex-col items-center">
-                        <Info size={48} className="text-gray-300 mb-2" />
-                        <p>No SPPG records found.</p>
-                    </div>
-                  </td>
-                </tr>
-              ) : (
-                initialSppgs.map((sppg) => (
-                  <tr key={sppg.id} className="hover:bg-gray-50 transition-colors group">
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="flex flex-col">
-                        <span className="text-sm font-bold text-gray-900 uppercase">{sppg.id}</span>
-                        <span className="text-xs text-gray-500 mt-0.5 whitespace-nowrap">Updated: {new Date(sppg.updatedAt).toLocaleDateString()}</span>
-                      </div>
-                    </td>
-                    <td className="px-6 py-4">
-                      <div className="flex flex-col">
-                        <div className="flex items-center text-sm text-gray-900 font-medium">
-                          <MapPin size={14} className="mr-1 text-red-500" />
-                          {sppg.villageName || 'Unknown Village'}
-                        </div>
-                        <div className="text-xs text-gray-500 mt-1 pl-5">
-                          {sppg.districtName}, {sppg.regencyName}
-                        </div>
-                      </div>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="text-sm text-gray-900 font-medium">{sppg.investor?.name || <span className="text-gray-400 italic">Not Assigned</span>}</div>
-                      <div className="text-xs text-gray-500">{sppg.investorId || ''}</div>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-center">
-                       <div className="flex flex-col items-start">
-                         <span className={`px-2.5 py-0.5 rounded-full text-xs font-semibold border ${getStatusColor(sppg.status)}`}>
-                            {getSppgStatusLabel(sppg.status)}
-                          </span>
-                          <div className="w-full mt-2 bg-gray-100 rounded-full h-1.5 max-w-[100px]">
-                            <div 
-                                className="bg-blue-600 h-1.5 rounded-full" 
-                                style={{ width: `${sppg.preparationPercent || 0}%` }}
-                            ></div>
-                          </div>
-                          <span className="text-[10px] text-gray-500 mt-0.5">{sppg.preparationPercent || 0}% Complete</span>
-                       </div>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                      <div className="flex justify-end items-center space-x-2">
-                        <Link 
-                          href={`/admin/sppg/${sppg.id}`}
-                          className="p-2 text-gray-600 hover:bg-gray-100 rounded-lg transition-colors"
-                          title="View Details"
-                        >
-                          <ExternalLink size={18} />
-                        </Link>
-                        <button 
-                          onClick={() => handleOpenEdit(sppg)}
-                          className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
-                          title="Edit SPPG"
-                        >
-                          <Edit size={18} />
-                        </button>
-                        <button 
-                          onClick={() => handleDelete(sppg.id)}
-                          disabled={loading === sppg.id}
-                          className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors disabled:opacity-50"
-                          title="Delete SPPG"
-                        >
-                          <Trash2 size={18} />
-                        </button>
-                      </div>
-                    </td>
-                  </tr>
-                ))
-              )}
-            </tbody>
-          </table>
-        </div>
-      </div>
+      <DataTable
+        data={initialSppgs}
+        columns={columns}
+        searchFields={['id', 'villageName', 'districtName', 'regencyName', 'investor.name']}
+        searchPlaceholder="Search by ID, Village, or Investor..."
+        filters={sppgFilters}
+      />
 
       <SPPGModal
         isOpen={isModalOpen}
@@ -169,3 +195,4 @@ export function SPPGClient({ sppgs: initialSppgs, investors, provinces }: SPPGCl
     </div>
   );
 }
+

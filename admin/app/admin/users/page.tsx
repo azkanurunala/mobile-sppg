@@ -1,5 +1,5 @@
 import { prisma } from '@/lib/prisma';
-import { UserClient } from './UserClient';
+import UserClient from './UserClient';
 
 export default async function UsersPage() {
   const users = await prisma.user.findMany({
@@ -28,9 +28,9 @@ export default async function UsersPage() {
 
   return (
     <UserClient 
-        users={users} 
-        provinces={provinces}
-        teams={teams}
+        users={JSON.parse(JSON.stringify(users))} 
+        provinces={JSON.parse(JSON.stringify(provinces))}
+        teams={JSON.parse(JSON.stringify(teams))}
     />
   );
 }

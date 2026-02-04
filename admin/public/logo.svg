@@ -1,0 +1,6 @@
+<svg width="150" height="150" viewBox="0 0 150 150" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <circle cx="75" cy="75" r="70" fill="#F0F7FF" stroke="#3B82F6" stroke-width="2"/>
+  <path d="M75 35C55 35 40 50 40 70C40 90 55 105 75 105C95 105 110 90 110 70C110 50 95 35 75 35ZM75 95C60 95 50 85 50 70C50 55 60 45 75 45C90 45 100 55 100 70C100 85 90 95 75 95Z" fill="#3B82F6"/>
+  <path d="M75 55C65 55 60 62 60 70C60 78 65 85 75 85C85 85 90 78 90 70C90 62 85 55 75 55Z" fill="#10B981"/>
+  <text x="75" y="125" text-anchor="middle" fill="#1E3A8A" font-family="sans-serif" font-weight="bold" font-size="14">SPPG ADMIN</text>
+</svg>

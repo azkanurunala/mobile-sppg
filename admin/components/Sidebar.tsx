@@ -7,10 +7,10 @@ export function Sidebar() {
     <div className="w-64 bg-gray-900 min-h-screen text-white p-4">
       <div className="flex flex-col items-center mb-10 px-2 mt-4">
         <Image 
-          src="/logo.png" 
+          src="/logo.svg" 
           alt="SPPG Logo" 
-          width={150} 
-          height={150} 
+          width={120} 
+          height={120} 
           className="mb-4 bg-white p-2 rounded-xl"
         />
         <div className="text-xl font-bold text-center">SPPG Admin</div>

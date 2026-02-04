@@ -12,7 +12,7 @@ interface UserModalProps {
   teams: any[];
 }
 
-export function UserModal({ isOpen, onClose, user, provinces, teams }: UserModalProps) {
+export default function UserModal({ isOpen, onClose, user, provinces, teams }: UserModalProps) {
   const [loading, setLoading] = useState(false);
   const [fetchingLocations, setFetchingLocations] = useState(false);
   const [error, setError] = useState<string | null>(null);
