@@ -4,10 +4,14 @@ import { UserClient } from './UserClient';
 export default async function UsersPage() {
   const users = await prisma.user.findMany({
     include: {
-        province: true,
-        regency: {
+        korwilProfile: {
             include: {
-                province: true
+                assignedRegency: {
+                    include: {
+                        province: true
+                    }
+                },
+                team: true
             }
         }
     },
@@ -18,10 +22,15 @@ export default async function UsersPage() {
     orderBy: { name: 'asc' }
   });
 
+  const teams = await prisma.team.findMany({
+    orderBy: { name: 'asc' }
+  });
+
   return (
     <UserClient 
         users={users} 
-        provinces={provinces} 
+        provinces={provinces}
+        teams={teams}
     />
   );
 }

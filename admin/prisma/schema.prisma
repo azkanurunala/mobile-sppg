@@ -11,7 +11,6 @@ datasource db {
 enum Role {
   SUPER_ADMIN
   ADMIN
-  KAREG   // Kepala Regional
   KORWIL  // Koordinator Wilayah
   USER
 }
@@ -22,18 +21,12 @@ model User {
   email         String    @unique
   password      String?
   phoneNumber   String?
-  nik           String?   // Nomor Induk Kependudukan
-  degree        String?   // Gelar Akademik
   role          Role      @default(USER)
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
-
-  // Scoping: KAREG is assigned to a Province, KORWIL to a Regency
-  provinceId    String?
-  province      Province? @relation(fields: [provinceId], references: [id])
   
-  regencyId     String?
-  regency       Regency?  @relation(fields: [regencyId], references: [id])
+  // Scoping: KORWIL profile
+  korwilProfile KorwilProfile?
 
   accounts      Account[]
   sessions      Session[]
@@ -56,6 +49,7 @@ model Account {
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@unique([provider, providerAccountId])
+  @@index([userId])
 }
 
 model Session {
@@ -64,6 +58,38 @@ model Session {
   userId       String
   expires      DateTime
   user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+}
+
+model Team {
+  id        String   @id @default(cuid())
+  name      String   @unique
+
+  korwils   KorwilProfile[]
+}
+
+model KorwilProfile {
+  id               String   @id @default(cuid())
+  userId           String   @unique
+  nik              String   @unique
+
+  academicTitle    String?
+  position         String?
+
+  assignedRegencyId String?
+  assignedRegency   Regency? @relation("KorwilAssignedRegency", fields: [assignedRegencyId], references: [id])
+
+  teamId           String?
+  team             Team?    @relation(fields: [teamId], references: [id])
+
+  user             User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+
+  @@index([teamId])
+  @@index([assignedRegencyId])
 }
 
 // --- Master Data Wilayah (Indonesia) ---
@@ -72,7 +98,6 @@ model Province {
   id        String    @id
   name      String
   regencies Regency[]
-  users     User[]    // Karegs
 }
 
 model Regency {
@@ -81,7 +106,11 @@ model Regency {
   name       String
   province   Province   @relation(fields: [provinceId], references: [id])
   districts  District[]
-  users      User[]     // Korwils
+  
+  // Korwil assigned ke Regency
+  korwils    KorwilProfile[] @relation("KorwilAssignedRegency")
+
+  @@index([provinceId])
 }
 
 model District {
@@ -104,21 +133,41 @@ model Village {
 // --- SPPG & Investor Data ---
 
 model Investor {
-  id        String   @id // Kode Investor
-  name      String
-  type      String   // Individu, Perusahaan
-  email     String?
-  phone     String?
-  nik       String?
-  sppgs     SPPG[]
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  id           String   @id // Kode Investor
+  name         String
+  type         String   // Individu, Perusahaan
+  email        String?
+  phone        String?
+  nik          String?
+  
+  investorCode String?  @unique // Explicit investor code requested
+
+  sppgs        SPPG[]
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+}
+
+// --- Master Data: SPPG Status ---
+model MasterStatus {
+  id          Int     @id
+  name        String
+  description String?
+  
+  sppgs       SPPG[]
 }
 
 model SPPG {
   id                 String   @id // Kode Unik SPPG
-  status             Int?
+  
+  statusId           Int?
+  status             MasterStatus? @relation(fields: [statusId], references: [id])
+  
   preparationPercent Float?     // Calculated from checklist
+  
+  // Timeline requested
+  preparationStart   DateTime?
+  preparationEnd     DateTime?
+
   lat                Float?
   long               Float?
   postalCode         String?
@@ -143,6 +192,10 @@ model SPPG {
 
   createdAt          DateTime @default(now())
   updatedAt          DateTime @updatedAt
+  
+  @@index([statusId])
+  @@index([investorId])
+  @@index([villageId])
 }
 
 // --- Master Data: SPPG Checklist Templates ---

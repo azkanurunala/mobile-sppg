@@ -8,9 +8,10 @@ import { deleteUser } from './actions';
 interface UserClientProps {
   users: any[];
   provinces: any[];
+  teams: any[];
 }
 
-export function UserClient({ users: initialUsers, provinces }: UserClientProps) {
+export function UserClient({ users: initialUsers, provinces, teams }: UserClientProps) {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedUser, setSelectedUser] = useState<any>(null);
   const [loading, setLoading] = useState<string | null>(null);
@@ -37,7 +38,6 @@ export function UserClient({ users: initialUsers, provinces }: UserClientProps) 
     switch (role) {
       case 'SUPER_ADMIN': return 'bg-red-100 text-red-800 border-red-200';
       case 'ADMIN': return 'bg-orange-100 text-orange-800 border-orange-200';
-      case 'KAREG': return 'bg-blue-100 text-blue-800 border-blue-200';
       case 'KORWIL': return 'bg-purple-100 text-purple-800 border-purple-200';
       default: return 'bg-gray-100 text-gray-800 border-gray-200';
     }
@@ -73,7 +73,7 @@ export function UserClient({ users: initialUsers, provinces }: UserClientProps) 
             <tbody className="bg-white divide-y divide-gray-200">
               {initialUsers.length === 0 ? (
                 <tr>
-                  <td colSpan={4} className="px-6 py-12 text-center text-gray-500 font-medium">
+                   <td colSpan={4} className="px-6 py-12 text-center text-gray-500 font-medium">
                     No users found.
                   </td>
                 </tr>
@@ -87,7 +87,10 @@ export function UserClient({ users: initialUsers, provinces }: UserClientProps) 
                         </div>
                         <div className="ml-4">
                           <div className="text-sm font-bold text-gray-900">
-                            {user.name} {user.degree && <span className="text-gray-500 font-normal">, {user.degree}</span>}
+                            {user.name} 
+                            {user.korwilProfile?.academicTitle && (
+                              <span className="text-gray-500 font-normal">, {user.korwilProfile.academicTitle}</span>
+                            )}
                           </div>
                           <div className="text-xs text-gray-500 flex items-center mt-0.5">
                             <Mail size={12} className="mr-1" />
@@ -100,7 +103,7 @@ export function UserClient({ users: initialUsers, provinces }: UserClientProps) 
                        <div className="space-y-1">
                           <div className="text-xs text-gray-700 flex items-center">
                             <Fingerprint size={12} className="mr-1.5 text-gray-400" />
-                            NIK: <span className="font-mono ml-1">{user.nik || '-'}</span>
+                            NIK: <span className="font-mono ml-1">{user.korwilProfile?.nik || '-'}</span>
                           </div>
                           <div className="text-xs text-gray-700 flex items-center">
                             <Phone size={12} className="mr-1.5 text-gray-400" />
@@ -113,10 +116,20 @@ export function UserClient({ users: initialUsers, provinces }: UserClientProps) 
                         <span className={`px-2.5 py-0.5 rounded-full text-xs font-bold border ${getRoleBadge(user.role)}`}>
                           {user.role}
                         </span>
-                        {(user.role === 'KAREG' || user.role === 'KORWIL') && (
-                          <div className="text-[11px] text-blue-700 bg-blue-50 px-2 py-0.5 rounded flex items-center border border-blue-100 italic">
-                            <MapPin size={10} className="mr-1" />
-                            {user.role === 'KAREG' ? user.province?.name : user.regency?.name}
+                        {user.role === 'KORWIL' && (
+                          <div className="flex flex-col space-y-1">
+                            {user.korwilProfile?.assignedRegency && (
+                              <div className="text-[11px] text-blue-700 bg-blue-50 px-2 py-0.5 rounded flex items-center border border-blue-100 italic">
+                                <MapPin size={10} className="mr-1" />
+                                {user.korwilProfile.assignedRegency.name}
+                              </div>
+                            )}
+                            {user.korwilProfile?.team && (
+                              <div className="text-[10px] text-purple-700 bg-purple-50 px-2 py-0.5 rounded flex items-center border border-purple-100 font-bold">
+                                <Shield size={10} className="mr-1" />
+                                {user.korwilProfile.team.name}
+                              </div>
+                            )}
                           </div>
                         )}
                       </div>
@@ -153,6 +166,7 @@ export function UserClient({ users: initialUsers, provinces }: UserClientProps) 
         onClose={() => setIsModalOpen(false)}
         user={selectedUser}
         provinces={provinces}
+        teams={teams}
       />
     </div>
   );

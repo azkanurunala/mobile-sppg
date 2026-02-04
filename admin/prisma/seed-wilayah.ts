@@ -1,6 +1,12 @@
 import { PrismaClient } from '@prisma/client';
 
-const prisma = new PrismaClient();
+const prisma = new PrismaClient({
+  datasources: {
+    db: {
+      url: "postgresql://neondb_owner:npg_aRVCIYtq5O7f@ep-falling-dawn-a17abuc3.ap-southeast-1.aws.neon.tech/neondb?sslmode=require&connect_timeout=60&pool_timeout=60"
+    }
+  }
+});
 
 const BASE_URL = 'https://wilayah.id/api';
 
@@ -26,7 +32,11 @@ async function seedWilayah() {
     // 1. Fetch Provinces
     console.log('📍 Fetching Provinces...');
     const provincesRes = await fetchJson(`${BASE_URL}/provinces.json`);
-    const provinces = provincesRes.data;
+    let provinces = provincesRes.data;
+
+    // Filter to start from Papua alphabetically (since API returns alphabetical order)
+    // This ensures we catch Papua, Riau, Sulawesi, Sumatera, etc.
+    provinces = provinces.filter((p: any) => p.name.localeCompare("Papua") >= 0);
 
     for (const province of provinces) {
       console.log(`  🔹 Province: ${province.name} (${province.code})`);

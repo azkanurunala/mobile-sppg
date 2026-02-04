@@ -1,7 +1,13 @@
 import { PrismaClient, Role } from '@prisma/client'
 import * as bcrypt from 'bcryptjs'
 
-const prisma = new PrismaClient()
+const prisma = new PrismaClient({
+  datasources: {
+    db: {
+      url: "postgresql://neondb_owner:npg_aRVCIYtq5O7f@ep-falling-dawn-a17abuc3.ap-southeast-1.aws.neon.tech/neondb?sslmode=require"
+    }
+  }
+})
 
 // Helper to normalize phone numbers
 const normalizePhone = (phone: string) => {
@@ -120,7 +126,8 @@ async function main() {
       type: 'Individu',
       email: 'mbg.pinangunian@gmail.com',
       phone: normalizePhone('6281241932263'),
-      nik: '7172042011860000'
+      nik: '7172042011860000',
+      investorCode: 'INV-001' 
     }
   })
 
@@ -139,37 +146,94 @@ async function main() {
     // For simplicity in this seed, we'll try to find them or fallback to old ID generation if not found
     // Actually, seedWilayah uses the official codes.
     
+    // Find Province
     const province = await prisma.province.findFirst({ where: { name: { contains: user.prov, mode: 'insensitive' } } });
     const provId = province?.id || "SS"; // Fallback
 
-    let regencyId = null
+    // Logic for Korwil vs Kareg
     if (user.role === Role.KORWIL) {
+        // Find Regency for Korwil
         const cleanRegName = user.jabatan.replace('Koordinator Wilayah', '').replace('Kabupaten', '').replace('Kota', '').trim()
         const regency = await prisma.regency.findFirst({ where: { name: { contains: cleanRegName, mode: 'insensitive' } } });
-        regencyId = regency?.id || (provId + "01"); // Fallback
-    }
+        const regencyId = regency?.id || (provId + "01"); // Fallback
 
-    await prisma.user.upsert({
-      where: { email: user.email },
-      update: {
-        provinceId: provId,
-        regencyId: regencyId,
-      },
-      create: {
-        name: user.name,
-        email: user.email,
-        password: hashedPassword,
-        phoneNumber: normalizePhone(user.phone),
-        nik: user.nik,
-        degree: user.degree,
-        role: user.role,
-        provinceId: provId, 
-        regencyId: regencyId,
-      }
+        // Transactional create for User + Profile
+        await prisma.$transaction(async (tx) => {
+            // 1. Create User
+            const createdUser = await tx.user.upsert({
+                where: { email: user.email },
+                update: {}, // Don't update basic user info if exists to avoid overwriting unrelated changes
+                create: {
+                    name: user.name,
+                    email: user.email,
+                    password: hashedPassword,
+                    phoneNumber: normalizePhone(user.phone),
+                    role: user.role,
+                    // Note: provinceId/regencyId are removed from User for Korwil in new schema logic? 
+                    // Wait, provinceId is still there for Kareg. Korwil doesn't use it on User table anymore based on plan.
+                }
+            })
+
+            // 2. Create/Update Profile
+            await tx.korwilProfile.upsert({
+                where: { userId: createdUser.id },
+                update: {
+                    assignedRegencyId: regencyId,
+                    academicTitle: user.degree,
+                    position: user.jabatan
+                },
+                create: {
+                    userId: createdUser.id,
+                    nik: user.nik,
+                    academicTitle: user.degree,
+                    position: user.jabatan,
+                    assignedRegencyId: regencyId
+                }
+            })
+        })
+
+    } else {
+        // KAREG or others
+        await prisma.user.upsert({
+            where: { email: user.email },
+            update: {
+                provinceId: provId,
+            },
+            create: {
+                name: user.name,
+                email: user.email,
+                password: hashedPassword,
+                phoneNumber: normalizePhone(user.phone),
+                // nik: user.nik, // Removed from User schema
+                // degree: user.degree, // Removed from User schema
+                role: user.role,
+                provinceId: provId, 
+            }
+        })
+    }
+  }
+
+  // 5. Seed Master Status
+  console.log('📊 Seeding Master Status...')
+  const masterStatuses = [
+    { id: 1, name: 'Assign Investor' },
+    { id: 2, name: 'Dokumen Pendaftaran' },
+    { id: 3, name: 'Proses Persiapan' },
+    { id: 4, name: 'Validasi Data Persiapan' },
+    { id: 5, name: 'Appraisal Biaya Sewa' },
+    { id: 6, name: 'Validasi Data Pendaftaran' },
+    { id: 7, name: 'Perjanjian Sewa' },
+  ]
+
+  for (const status of masterStatuses) {
+    await prisma.masterStatus.upsert({
+      where: { id: status.id },
+      update: { name: status.name },
+      create: { id: status.id, name: status.name }
     })
   }
 
-  // 5. Seed SPPG Data and Link to Checklist
+  // 6. Seed SPPG Data and Link to Checklist
   const sppgCode = "02.T.8624"
   
   const sppg = await prisma.sPPG.upsert({
@@ -177,7 +241,7 @@ async function main() {
       update: {},
       create: {
           id: sppgCode,
-          status: "Assign Investor",
+          statusId: 1, // Assign Investor
           preparationPercent: 0,
           lat: 0, long: 0,
           investorId: 'INVSMDPAIB', 

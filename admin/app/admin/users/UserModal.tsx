@@ -9,26 +9,27 @@ interface UserModalProps {
   onClose: () => void;
   user?: any;
   provinces: any[];
+  teams: any[];
 }
 
-export function UserModal({ isOpen, onClose, user, provinces }: UserModalProps) {
+export function UserModal({ isOpen, onClose, user, provinces, teams }: UserModalProps) {
   const [loading, setLoading] = useState(false);
   const [fetchingLocations, setFetchingLocations] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [role, setRole] = useState(user?.role || 'USER');
 
   // Cascading states
-  const [selectedProvinceId, setSelectedProvinceId] = useState(user?.provinceId || user?.regency?.provinceId || '');
-  const [selectedRegencyId, setSelectedRegencyId] = useState(user?.regencyId || '');
+  const [selectedProvinceId, setSelectedProvinceId] = useState(user?.korwilProfile?.assignedRegency?.provinceId || '');
+  const [selectedRegencyId, setSelectedRegencyId] = useState(user?.korwilProfile?.assignedRegencyId || '');
   const [regencies, setRegencies] = useState<any[]>([]);
 
   useEffect(() => {
     if (isOpen) {
       if (user) {
         setRole(user.role);
-        const provId = user.provinceId || user.regency?.provinceId || '';
+        const provId = user.korwilProfile?.assignedRegency?.provinceId || '';
         setSelectedProvinceId(provId);
-        setSelectedRegencyId(user.regencyId || '');
+        setSelectedRegencyId(user.korwilProfile?.assignedRegencyId || '');
         if (provId) loadRegencies(provId);
       } else {
         setRole('USER');
@@ -106,13 +107,18 @@ export function UserModal({ isOpen, onClose, user, provinces }: UserModalProps) 
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Degree (Gelar)</label>
-              <input
-                name="degree"
-                defaultValue={user?.degree}
-                placeholder="e.g. S.Kom, M.T."
+              <label className="block text-sm font-medium text-gray-700 mb-1">Role</label>
+              <select
+                name="role"
+                value={role}
+                onChange={(e) => setRole(e.target.value)}
                 className="w-full border p-2.5 rounded-lg bg-white focus:ring-2 focus:ring-blue-500 outline-none"
-              />
+              >
+                <option value="USER">USER</option>
+                <option value="KORWIL">KORWIL (Koordinator Wilayah)</option>
+                <option value="ADMIN">ADMIN</option>
+                <option value="SUPER_ADMIN">SUPER_ADMIN</option>
+              </select>
             </div>
           </div>
 
@@ -128,18 +134,6 @@ export function UserModal({ isOpen, onClose, user, provinces }: UserModalProps) 
                 required
               />
             </div>
-             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">NIK</label>
-              <input
-                name="nik"
-                defaultValue={user?.nik}
-                placeholder="16-digit NIK"
-                className="w-full border p-2.5 rounded-lg bg-white focus:ring-2 focus:ring-blue-500 outline-none"
-              />
-            </div>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">Phone Number</label>
               <input
@@ -149,7 +143,10 @@ export function UserModal({ isOpen, onClose, user, provinces }: UserModalProps) 
                 className="w-full border p-2.5 rounded-lg bg-white focus:ring-2 focus:ring-blue-500 outline-none"
               />
             </div>
-            <div>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">Password {user && '(Leave blank to keep current)'}</label>
               <input
                 name="password"
@@ -161,71 +158,89 @@ export function UserModal({ isOpen, onClose, user, provinces }: UserModalProps) 
             </div>
           </div>
 
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Role</label>
-            <select
-              name="role"
-              value={role}
-              onChange={(e) => setRole(e.target.value)}
-              className="w-full border p-2.5 rounded-lg bg-white focus:ring-2 focus:ring-blue-500 outline-none"
-            >
-              <option value="USER">USER</option>
-              <option value="KAREG">KAREG (Kepala Regional)</option>
-              <option value="KORWIL">KORWIL (Koordinator Wilayah)</option>
-              <option value="ADMIN">ADMIN</option>
-              <option value="SUPER_ADMIN">SUPER_ADMIN</option>
-            </select>
-          </div>
-
-          {role === 'KAREG' && (
-            <div className="animate-in fade-in slide-in-from-top-1 duration-200 bg-blue-50 p-4 rounded-xl border border-blue-100">
-              <label className="block text-sm font-medium text-gray-700 mb-1 text-blue-600 font-bold">Province Scope (Mandatory for KAREG)</label>
-              <select
-                name="provinceId"
-                defaultValue={user?.provinceId || ''}
-                className="w-full border-2 border-blue-200 p-2.5 rounded-lg bg-white focus:ring-2 focus:ring-blue-500 outline-none"
-                required
-              >
-                <option value="">Select Province</option>
-                {provinces.map((p) => (
-                  <option key={p.id} value={p.id}>{p.name}</option>
-                ))}
-              </select>
-            </div>
-          )}
-
           {role === 'KORWIL' && (
-            <div className="animate-in fade-in slide-in-from-top-1 duration-200 bg-blue-50 p-4 rounded-xl border border-blue-100 space-y-3">
-              <h3 className="text-sm font-bold text-blue-600 flex items-center justify-between">
-                <span>Regency Scope (Mandatory for KORWIL)</span>
-                {fetchingLocations && <Loader2 size={16} className="animate-spin" />}
-              </h3>
-              
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                <div>
-                   <label className="block text-[10px] uppercase font-bold text-gray-500 mb-1">Province</label>
-                   <select
-                     value={selectedProvinceId}
-                     onChange={handleProvinceChange}
-                     className="w-full border p-2 rounded-lg bg-white text-sm outline-none focus:ring-2 focus:ring-blue-500"
-                   >
-                     <option value="">Select Province</option>
-                     {provinces.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
-                   </select>
+            <div className="animate-in fade-in slide-in-from-top-1 duration-200 space-y-4">
+              <div className="bg-blue-50 p-4 rounded-xl border border-blue-100 space-y-4">
+                <h3 className="text-sm font-bold text-blue-600">Korwil Profile Details</h3>
+                
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-xs font-medium text-gray-600 mb-1">NIK</label>
+                    <input
+                      name="nik"
+                      defaultValue={user?.korwilProfile?.nik}
+                      placeholder="16-digit NIK"
+                      className="w-full border p-2.5 rounded-lg bg-white outline-none focus:ring-2 focus:ring-blue-500"
+                      required={role === 'KORWIL'}
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-xs font-medium text-gray-600 mb-1">Academic Title (Gelar)</label>
+                    <input
+                      name="academicTitle"
+                      defaultValue={user?.korwilProfile?.academicTitle || user?.degree}
+                      placeholder="e.g. S.Kom, M.T."
+                      className="w-full border p-2.5 rounded-lg bg-white outline-none focus:ring-2 focus:ring-blue-500"
+                    />
+                  </div>
                 </div>
-                <div>
-                   <label className="block text-[10px] uppercase font-bold text-gray-500 mb-1">Regency</label>
-                   <select
-                     name="regencyId"
-                     value={selectedRegencyId}
-                     onChange={(e) => setSelectedRegencyId(e.target.value)}
-                     disabled={!selectedProvinceId}
-                     className="w-full border p-2 rounded-lg bg-white text-sm outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50"
-                     required
-                   >
-                     <option value="">Select Regency</option>
-                     {regencies.map(r => <option key={r.id} value={r.id}>{r.name}</option>)}
-                   </select>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-xs font-medium text-gray-600 mb-1">Position</label>
+                    <input
+                      name="position"
+                      defaultValue={user?.korwilProfile?.position}
+                      placeholder="e.g. Koordinator Wilayah"
+                      className="w-full border p-2.5 rounded-lg bg-white outline-none focus:ring-2 focus:ring-blue-500"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-xs font-medium text-gray-600 mb-1">Team Assignment</label>
+                    <select
+                      name="teamId"
+                      defaultValue={user?.korwilProfile?.teamId || ''}
+                      className="w-full border p-2.5 rounded-lg bg-white outline-none focus:ring-2 focus:ring-blue-500"
+                    >
+                      <option value="">No Team</option>
+                      {teams.map(t => <option key={t.id} value={t.id}>{t.name}</option>)}
+                    </select>
+                  </div>
+                </div>
+
+                <div className="space-y-3 pt-2 border-t border-blue-100">
+                  <h4 className="text-[10px] uppercase font-bold text-gray-400 flex items-center justify-between">
+                    <span>Region Assignment</span>
+                    {fetchingLocations && <Loader2 size={12} className="animate-spin" />}
+                  </h4>
+                  
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                    <div>
+                       <label className="block text-[10px] uppercase font-bold text-gray-500 mb-1">Province</label>
+                       <select
+                         value={selectedProvinceId}
+                         onChange={handleProvinceChange}
+                         className="w-full border p-2 rounded-lg bg-white text-sm outline-none focus:ring-2 focus:ring-blue-500"
+                       >
+                         <option value="">Select Province</option>
+                         {provinces.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
+                       </select>
+                    </div>
+                    <div>
+                       <label className="block text-[10px] uppercase font-bold text-gray-500 mb-1">Regency</label>
+                       <select
+                         name="regencyId"
+                         value={selectedRegencyId}
+                         onChange={(e) => setSelectedRegencyId(e.target.value)}
+                         disabled={!selectedProvinceId}
+                         className="w-full border p-2 rounded-lg bg-white text-sm outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50"
+                         required={role === 'KORWIL'}
+                       >
+                         <option value="">Select Regency</option>
+                         {regencies.map(r => <option key={r.id} value={r.id}>{r.name}</option>)}
+                       </select>
+                    </div>
+                  </div>
                 </div>
               </div>
             </div>
