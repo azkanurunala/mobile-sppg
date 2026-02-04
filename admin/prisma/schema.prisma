@@ -117,7 +117,7 @@ model Investor {
 
 model SPPG {
   id                 String   @id // Kode Unik SPPG
-  status             String?
+  status             Int?
   preparationPercent Float?     // Calculated from checklist
   lat                Float?
   long               Float?
@@ -131,8 +131,11 @@ model SPPG {
   village            Village?  @relation(fields: [villageId], references: [id])
   
   // Location Snapshots
+  provinceId         String?
   provinceName       String?
+  regencyId          String?
   regencyName        String?
+  districtId         String?
   districtName       String?
   villageName        String?
 

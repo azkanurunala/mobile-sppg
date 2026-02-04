@@ -24,12 +24,81 @@ const masterChecklistData = [
   { key: 'utilities', name: 'Instalasi Utilitas', description: 'Instalasi listrik, air dan gas berfungsi', weight: 10.0 },
 ]
 
+const WILAYAH_BASE_URL = 'https://wilayah.id/api';
+
+async function fetchJson(url: string) {
+  try {
+    const response = await fetch(url);
+    if (!response.ok) {
+      throw new Error(`Failed to fetch ${url}: ${response.statusText}`);
+    }
+    return await response.json();
+  } catch (error) {
+    console.error(`Error fetching ${url}:`, error);
+    return { data: [] };
+  }
+}
+
+async function seedWilayah() {
+  console.log('🌏 Seeding Indonesian Administrative Regions...');
+  
+  // Check if we already have provinces (to avoid re-fetching everything)
+  const provinceCount = await prisma.province.count();
+  if (provinceCount > 0) {
+    console.log(`⏩ Skipping Wilayah seeding: ${provinceCount} provinces already exist.`);
+    return;
+  }
+
+  // 1. Provinces
+  const provincesRes = await fetchJson(`${WILAYAH_BASE_URL}/provinces.json`);
+  const provinces = provincesRes.data;
+
+  for (const province of provinces) {
+    console.log(`  🔹 ${province.name}`);
+    await prisma.province.upsert({
+      where: { id: province.code },
+      update: { name: province.name },
+      create: { id: province.code, name: province.name },
+    });
+
+    // 2. Regencies
+    const regenciesRes = await fetchJson(`${WILAYAH_BASE_URL}/regencies/${province.code}.json`);
+    for (const regency of regenciesRes.data) {
+      await prisma.regency.upsert({
+        where: { id: regency.code },
+        update: { name: regency.name, provinceId: province.code },
+        create: { id: regency.code, name: regency.name, provinceId: province.code },
+      });
+
+      // 3. Districts
+      const districtsRes = await fetchJson(`${WILAYAH_BASE_URL}/districts/${regency.code}.json`);
+      for (const district of districtsRes.data) {
+        await prisma.district.upsert({
+          where: { id: district.code },
+          update: { name: district.name, regencyId: regency.code },
+          create: { id: district.code, name: district.name, regencyId: regency.code },
+        });
+
+        // 4. Villages
+        const villagesRes = await fetchJson(`${WILAYAH_BASE_URL}/villages/${district.code}.json`);
+        const villageOps = villagesRes.data.map((village: any) =>
+          prisma.village.upsert({
+            where: { id: village.code },
+            update: { name: village.name, districtId: district.code },
+            create: { id: village.code, name: village.name, districtId: district.code },
+          })
+        );
+        await Promise.all(villageOps);
+      }
+    }
+  }
+}
+
 async function main() {
   console.log('🌱 Starting seeding...')
 
-  // 1. Seed Master Data Wilayah (Simplified)
-  const getProvinceId = (name: string) => name.toUpperCase().replace(/[^A-Z]/g, '').substring(0, 2).padEnd(2, '0')
-  const getRegencyId = (name: string, provId: string) => provId + name.toUpperCase().replace(/[^A-Z]/g, '').substring(0, 2).padEnd(2, '0')
+  // 1. Seed Master Data Wilayah (Comprehensive)
+  await seedWilayah();
 
   // 2. Seed Master Checklist Items
   console.log('📝 Seeding Master Checklist Items...')
@@ -65,26 +134,27 @@ async function main() {
   for (const user of users) {
     const hashedPassword = await bcrypt.hash('password123', 10)
     
-    // Ensure regions exist
-    const provId = getProvinceId(user.prov)
-    await prisma.province.upsert({
-       where: { id: provId }, update: {}, create: { id: provId, name: user.prov.toUpperCase() }
-    })
+    // We expect regions to be seeded by seedWilayah now
+    // But we need to find the IDs based on name for these specific users
+    // For simplicity in this seed, we'll try to find them or fallback to old ID generation if not found
+    // Actually, seedWilayah uses the official codes.
+    
+    const province = await prisma.province.findFirst({ where: { name: { contains: user.prov, mode: 'insensitive' } } });
+    const provId = province?.id || "SS"; // Fallback
 
     let regencyId = null
     if (user.role === Role.KORWIL) {
         const cleanRegName = user.jabatan.replace('Koordinator Wilayah', '').replace('Kabupaten', '').replace('Kota', '').trim()
-        regencyId = getRegencyId(cleanRegName, provId)
-        
-        await prisma.regency.upsert({
-            where: { id: regencyId }, update: {}, 
-            create: { id: regencyId, provinceId: provId, name: cleanRegName.toUpperCase() }
-        })
+        const regency = await prisma.regency.findFirst({ where: { name: { contains: cleanRegName, mode: 'insensitive' } } });
+        regencyId = regency?.id || (provId + "01"); // Fallback
     }
 
     await prisma.user.upsert({
       where: { email: user.email },
-      update: {},
+      update: {
+        provinceId: provId,
+        regencyId: regencyId,
+      },
       create: {
         name: user.name,
         email: user.email,
@@ -93,7 +163,7 @@ async function main() {
         nik: user.nik,
         degree: user.degree,
         role: user.role,
-        provinceId: user.role === Role.KAREG ? provId : provId, 
+        provinceId: provId, 
         regencyId: regencyId,
       }
     })

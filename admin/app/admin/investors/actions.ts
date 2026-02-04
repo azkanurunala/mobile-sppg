@@ -16,16 +16,38 @@ export async function createInvestor(formData: FormData) {
   const id = formData.get('id') as string
   const name = formData.get('name') as string
   const type = formData.get('type') as string
-  const email = formData.get('email') as string
-  const phone = formData.get('phone') as string
+  const email = formData.get('email') as string || null
+  const phone = formData.get('phone') as string || null
+  const nik = formData.get('nik') as string || null
 
   try {
     await prisma.investor.create({
-      data: { id, name, type, email, phone },
+      data: { id, name, type, email, phone, nik },
     })
     revalidatePath('/admin/investors')
     return { success: true }
-  } catch (error) {
-    return { error: 'Failed' }
+  } catch (error: any) {
+    console.error('Create Investor Error:', error)
+    return { error: error.message || 'Failed to create investor' }
+  }
+}
+
+export async function updateInvestor(id: string, formData: FormData) {
+  const name = formData.get('name') as string
+  const type = formData.get('type') as string
+  const email = formData.get('email') as string || null
+  const phone = formData.get('phone') as string || null
+  const nik = formData.get('nik') as string || null
+
+  try {
+    await prisma.investor.update({
+      where: { id },
+      data: { name, type, email, phone, nik },
+    })
+    revalidatePath('/admin/investors')
+    return { success: true }
+  } catch (error: any) {
+    console.error('Update Investor Error:', error)
+    return { error: error.message || 'Failed to update investor' }
   }
 }
