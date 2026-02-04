@@ -1,0 +1,173 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  SUPER_ADMIN
+  ADMIN
+  KAREG   // Kepala Regional
+  KORWIL  // Koordinator Wilayah
+  USER
+}
+
+model User {
+  id            String    @id @default(cuid())
+  name          String?
+  email         String    @unique
+  password      String?
+  phoneNumber   String?
+  nik           String?   // Nomor Induk Kependudukan
+  degree        String?   // Gelar Akademik
+  role          Role      @default(USER)
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  // Scoping: KAREG is assigned to a Province, KORWIL to a Regency
+  provinceId    String?
+  province      Province? @relation(fields: [provinceId], references: [id])
+  
+  regencyId     String?
+  regency       Regency?  @relation(fields: [regencyId], references: [id])
+
+  accounts      Account[]
+  sessions      Session[]
+}
+
+model Account {
+  id                String  @id @default(cuid())
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String? @db.Text
+  access_token      String? @db.Text
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String? @db.Text
+  session_state     String?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+}
+
+model Session {
+  id           String   @id @default(cuid())
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+// --- Master Data Wilayah (Indonesia) ---
+
+model Province {
+  id        String    @id
+  name      String
+  regencies Regency[]
+  users     User[]    // Karegs
+}
+
+model Regency {
+  id         String     @id
+  provinceId String
+  name       String
+  province   Province   @relation(fields: [provinceId], references: [id])
+  districts  District[]
+  users      User[]     // Korwils
+}
+
+model District {
+  id        String    @id
+  regencyId String
+  name      String
+  regency   Regency   @relation(fields: [regencyId], references: [id])
+  villages  Village[]
+}
+
+model Village {
+  id         String   @id
+  districtId String
+  name       String
+  postalCode String?
+  district   District @relation(fields: [districtId], references: [id])
+  sppgs      SPPG[]   // SPPGs located in this village
+}
+
+// --- SPPG & Investor Data ---
+
+model Investor {
+  id        String   @id // Kode Investor
+  name      String
+  type      String   // Individu, Perusahaan
+  email     String?
+  phone     String?
+  nik       String?
+  sppgs     SPPG[]
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model SPPG {
+  id                 String   @id // Kode Unik SPPG
+  status             String?
+  preparationPercent Float?     // Calculated from checklist
+  lat                Float?
+  long               Float?
+  postalCode         String?
+  
+  // Relations
+  investorId         String?
+  investor           Investor? @relation(fields: [investorId], references: [id])
+
+  villageId          String?
+  village            Village?  @relation(fields: [villageId], references: [id])
+  
+  // Location Snapshots
+  provinceName       String?
+  regencyName        String?
+  districtName       String?
+  villageName        String?
+
+  checklistProgress  SPPGChecklistProgress[]
+
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
+}
+
+// --- Master Data: SPPG Checklist Templates ---
+model MasterChecklistItem {
+  id            String  @id @default(cuid())
+  key           String  @unique // e.g. "foundation", "roof"
+  name          String  // e.g. "Pondasi"
+  description   String? // e.g. "Pondasi bangunan selesai..."
+  weight        Float   // e.g. 10.0
+
+  progressItems SPPGChecklistProgress[]
+
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+}
+
+// --- Transaction Data: SPPG Progress ---
+model SPPGChecklistProgress {
+  id              String @id @default(cuid())
+  
+  sppgId          String
+  sppg            SPPG @relation(fields: [sppgId], references: [id], onDelete: Cascade)
+  
+  masterItemId    String
+  masterItem      MasterChecklistItem @relation(fields: [masterItemId], references: [id])
+  
+  isCompleted     Boolean @default(false)
+  
+  updatedAt       DateTime @updatedAt
+
+  @@unique([sppgId, masterItemId]) // One status per item per SPPG
+}
