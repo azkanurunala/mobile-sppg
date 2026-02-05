@@ -133,7 +133,7 @@ async function main() {
 
   // 4. Seed Users (Kareg & Korwil)
   const users = [
-    { no: 1, nik: '1607164509950001', name: 'Diana Putri', degree: 'S1 - Ilmu Gizi', domilisi_kec: 'Sukarami', domisili_kab: 'Palembang', prov: 'Sumatera Selatan', jabatan: 'Kepala Regional Provinsi Sumatera Selatan', phone: '081226494420', email: 'putridiana5995@gmail.com', role: Role.KAREG },
+    { no: 1, nik: '1607164509950001', name: 'Diana Putri', degree: 'S1 - Ilmu Gizi', domilisi_kec: 'Sukarami', domisili_kab: 'Palembang', prov: 'Sumatera Selatan', jabatan: 'Kepala Regional Provinsi Sumatera Selatan', phone: '081226494420', email: 'putridiana5995@gmail.com', role: Role.ADMIN },
     { no: 3, nik: '1607030703990001', name: 'Willy Al Kusari', degree: 'DIV - Teknik Energi', domilisi_kec: 'Banyuasin III', domisili_kab: 'Banyuasin', prov: 'Sumatera Selatan', jabatan: 'Koordinator Wilayah Kabupaten Banyuasin', phone: '085824796775', email: 'willyalkusari7@gmail.com', role: Role.KORWIL },
     { no: 17, nik: '1671070602980011', name: 'Muhammad Alief Rizky', degree: 'S1 - Psikologi', domilisi_kec: 'Seberang Ulu 2', domisili_kab: 'Palembang', prov: 'Sumatera Selatan', jabatan: 'Koordinator Wilayah Kota Palembang', phone: '085266366626', email: 'muhammadaliefrizky@gmail.com', role: Role.KORWIL },
   ]
@@ -197,7 +197,7 @@ async function main() {
         await prisma.user.upsert({
             where: { email: user.email },
             update: {
-                provinceId: provId,
+                // provinceId: provId, // REMOVED: Field no longer exists on User
             },
             create: {
                 name: user.name,
@@ -207,7 +207,7 @@ async function main() {
                 // nik: user.nik, // Removed from User schema
                 // degree: user.degree, // Removed from User schema
                 role: user.role,
-                provinceId: provId, 
+                // provinceId: provId,  // REMOVED: Field no longer exists on User
             }
         })
     }

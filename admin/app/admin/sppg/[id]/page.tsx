@@ -65,8 +65,8 @@ export default async function SPPGDetailPage(props: { params: Promise<{ id: stri
         <div>
           <div className="flex items-center space-x-3">
             <h1 className="text-3xl font-bold text-gray-900 uppercase">{sppg.id}</h1>
-            <span className={`px-3 py-1 rounded-full text-sm font-semibold ${getStatusColor(sppg.status)}`}>
-              {getSppgStatusLabel(sppg.status)}
+            <span className={`px-3 py-1 rounded-full text-sm font-semibold ${getStatusColor(sppg.statusId)}`}>
+              {getSppgStatusLabel(sppg.statusId)}
             </span>
           </div>
           <p className="text-gray-500 mt-1">Detailed information and progress for this SPPG unit.</p>
@@ -162,7 +162,7 @@ export default async function SPPGDetailPage(props: { params: Promise<{ id: stri
                   <p>No checklist progress records found.</p>
                 </div>
               ) : (
-                sppg.checklistProgress.map((progress) => (
+                sppg.checklistProgress.map((progress: any) => (
                   <div key={progress.id} className="flex items-center justify-between p-4 rounded-lg bg-gray-50 border border-transparent hover:border-gray-200 transition-all">
                     <div className="flex items-center space-x-4">
                       <div className={`p-2 rounded-full ${progress.isCompleted ? 'bg-green-100 text-green-600' : 'bg-gray-200 text-gray-400'}`}>

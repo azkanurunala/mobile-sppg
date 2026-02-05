@@ -11,7 +11,16 @@ async function main() {
   if (count > 0) {
     const sample = await prisma.user.findFirst({
         where: { role: 'KORWIL' },
-        include: { regency: true, province: true }
+        include: { 
+          korwilProfile: {
+            include: {
+              assignedRegency: {
+                include: { province: true }
+              },
+              team: true
+            }
+          }
+        }
     });
     console.log('Sample Korwil:', JSON.stringify(sample, null, 2));
   }

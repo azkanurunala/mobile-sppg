@@ -68,7 +68,7 @@ export async function createSPPG(formData: FormData) {
     await prisma.sPPG.create({
       data: { 
         id, 
-        status, 
+        statusId: status, 
         investorId: investorId === '' ? null : investorId,
         villageId: villageId === '' ? null : villageId,
         lat,
@@ -128,7 +128,7 @@ export async function updateSPPG(id: string, formData: FormData) {
     await prisma.sPPG.update({
       where: { id },
       data: { 
-        status, 
+        statusId: status, 
         investorId: investorId === '' ? null : investorId,
         villageId: villageId === '' ? null : villageId,
         lat,

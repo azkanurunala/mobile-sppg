@@ -94,25 +94,41 @@ async function main() {
     const email = `korwil.${namePart}.${regency.id}@sppg.id`;
 
     try {
-      await prisma.user.upsert({
-        where: { email },
-        update: {
-          name: fullName,
-          phoneNumber: phone,
-          role: Role.KORWIL,
-          provinceId: province.id,
-          regencyId: regency.id,
-        },
-        create: {
-          email,
-          name: fullName,
-          phoneNumber: phone,
-          password: passwordHash,
-          role: Role.KORWIL,
-          provinceId: province.id,
-          regencyId: regency.id,
-        }
+      await prisma.$transaction(async (tx: any) => {
+        // 1. Upsert User
+        const user = await tx.user.upsert({
+          where: { email },
+          update: {
+            name: fullName,
+            phoneNumber: phone,
+            role: Role.KORWIL,
+          },
+          create: {
+            email,
+            name: fullName,
+            phoneNumber: phone,
+            password: passwordHash,
+            role: Role.KORWIL,
+          }
+        });
+
+        // 2. Upsert KorwilProfile
+        // Generate a deterministic but unique NIK suffix since data source lacks NIK
+        const dummyNik = `KORWIL-${regency.id}-${Date.now().toString().slice(-4)}-${Math.floor(Math.random() * 1000)}`;
+
+        await tx.korwilProfile.upsert({
+          where: { userId: user.id },
+          update: {
+            assignedRegencyId: regency.id,
+          },
+          create: {
+            userId: user.id,
+            nik: dummyNik,
+            assignedRegencyId: regency.id,
+          }
+        });
       });
+
       successCount++;
       if (successCount % 50 === 0) console.log(`  Processed ${successCount} users...`);
     } catch (err) {

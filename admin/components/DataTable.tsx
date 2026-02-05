@@ -196,7 +196,11 @@ export function DataTable<T>({
                     )}
                     onClick={() => column.sortable && column.accessorKey && handleSort(column.accessorKey as string)}
                   >
-                    <div className="flex items-center gap-2">
+                    <div className={cn(
+                      "flex items-center gap-2",
+                      column.className?.includes('text-right') && "justify-end",
+                      column.className?.includes('text-center') && "justify-center"
+                    )}>
                       {column.header}
                       {column.sortable && (
                         <span className="text-gray-400">

@@ -7,13 +7,14 @@ export async function GET(request: Request) {
     const status = searchParams.get('status');
 
     const where = status && status !== 'Semua Status' 
-      ? { status } 
+      ? { status: { name: status } } 
       : {};
 
     const sppgs = await prisma.sPPG.findMany({
       where,
       include: {
         investor: true,
+        status: true,
         village: {
           include: {
             district: {
@@ -35,7 +36,7 @@ export async function GET(request: Request) {
       location: item.village 
         ? `Kec. ${item.village.district.name}, ${item.village.name}`
         : 'Lokasi Belum Set',
-      status: item.status || 'Assign Investor',
+      status: item.status?.name || 'Assign Investor',
       preparationProgress: item.preparationPercent || 0,
     }));
 
