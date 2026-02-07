@@ -1,11 +1,91 @@
-
 import React, { useState, useEffect } from 'react';
-import { View, Text, TextInput, TouchableOpacity, ScrollView, Alert, ActivityIndicator, KeyboardAvoidingView, Platform } from 'react-native';
+import { View, Text, TextInput, TouchableOpacity, ScrollView, Alert, ActivityIndicator, KeyboardAvoidingView, Platform, Modal } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { StatusBar } from 'expo-status-bar';
-import { Eye, EyeOff, User, Phone, MapPin, Building, Lock, ArrowRight, UserPlus, ChevronDown } from 'lucide-react-native';
+import { Eye, EyeOff, User, Phone, MapPin, Building, Lock, ArrowRight, UserPlus, ChevronDown, Search, X } from 'lucide-react-native';
 import { useRouter } from 'expo-router';
 import { fetchApi } from '@/lib/api';
+
+// Reusable Selection Modal Component
+const SelectionModal = ({ 
+  visible, 
+  items, 
+  onSelect, 
+  onClose, 
+  title 
+}: {
+  visible: boolean;
+  items: {id: string; name: string}[];
+  onSelect: (id: string) => void;
+  onClose: () => void;
+  title: string;
+}) => {
+  const [searchQuery, setSearchQuery] = useState('');
+  
+  // Reset search query when modal opens
+  useEffect(() => {
+    if (visible) setSearchQuery('');
+  }, [visible]);
+
+  if (!visible) return null;
+
+  const filteredItems = items.filter(item => 
+    item.name.toLowerCase().includes(searchQuery.toLowerCase())
+  );
+
+  return (
+    <Modal visible={visible} transparent animationType="fade" onRequestClose={onClose}>
+        <View className="flex-1 bg-black/50 justify-center px-6 py-20">
+            <View className="bg-white rounded-xl flex-1 overflow-hidden">
+                <View className="p-4 border-b border-gray-100">
+                    <View className="flex-row justify-between items-center mb-4">
+                        <Text className="font-bold text-lg font-plus-jakarta-extrabold">{title}</Text>
+                        <TouchableOpacity onPress={onClose}>
+                            <X size={24} color="#4B5563" />
+                        </TouchableOpacity>
+                    </View>
+                    {/* Search Input */}
+                    <View className="flex-row items-center bg-gray-50 border border-gray-200 rounded-lg px-3 py-2">
+                        <Search size={20} color="#9CA3AF" className="mr-2" />
+                        <TextInput 
+                            className="flex-1 font-plus-jakarta-medium text-gray-900 py-2"
+                            placeholder="Cari..."
+                            value={searchQuery}
+                            onChangeText={setSearchQuery}
+                        />
+                        {searchQuery.length > 0 && (
+                            <TouchableOpacity onPress={() => setSearchQuery('')}>
+                                <X size={16} color="#9CA3AF" />
+                            </TouchableOpacity>
+                        )}
+                    </View>
+                </View>
+                
+                <ScrollView className="flex-1 px-4">
+                    {filteredItems.length === 0 ? (
+                        <View className="py-8 items-center">
+                            <Text className="text-gray-500 text-center font-plus-jakarta-medium">Tidak ditemukan</Text>
+                        </View>
+                    ) : (
+                        filteredItems.map(item => (
+                            <TouchableOpacity 
+                                key={item.id} 
+                                className="py-3 border-b border-gray-100"
+                                onPress={() => {
+                                    onSelect(item.id);
+                                    onClose();
+                                }}
+                            >
+                                <Text className="text-gray-800 font-plus-jakarta-semibold">{item.name}</Text>
+                            </TouchableOpacity>
+                        ))
+                    )}
+                </ScrollView>
+            </View>
+        </View>
+    </Modal>
+  );
+};
 
 export default function RegisterScreen() {
   const router = useRouter();
@@ -88,42 +168,6 @@ export default function RegisterScreen() {
     }
   };
 
-  const renderSelectModal = (
-      visible: boolean, 
-      items: {id: string, name: string}[], 
-      onSelect: (id: string) => void,
-      onClose: () => void,
-      title: string
-    ) => {
-    if (!visible) return null;
-    return (
-        <View className="absolute top-0 bottom-0 left-0 right-0 bg-black/50 z-50 justify-center px-6 py-20">
-            <View className="bg-white rounded-xl p-4 flex-1">
-                <View className="flex-row justify-between items-center mb-4 border-b border-gray-100 pb-2">
-                    <Text className="font-bold text-lg font-plus-jakarta-extrabold">{title}</Text>
-                    <TouchableOpacity onPress={onClose}>
-                        <Text className="text-blue-600 font-plus-jakarta-extrabold">Tutup</Text>
-                    </TouchableOpacity>
-                </View>
-                <ScrollView>
-                    {items.map(item => (
-                        <TouchableOpacity 
-                            key={item.id} 
-                            className="py-3 border-b border-gray-100"
-                            onPress={() => {
-                                onSelect(item.id);
-                                onClose();
-                            }}
-                        >
-                            <Text className="text-gray-800 font-plus-jakarta-semibold">{item.name}</Text>
-                        </TouchableOpacity>
-                    ))}
-                </ScrollView>
-            </View>
-        </View>
-    );
-  };
-
   const selectedProvinceName = provinces.find(p => p.id === formData.provinceId)?.name || 'Pilih Provinsi';
   const selectedRegencyName = regencies.find(r => r.id === formData.regencyId)?.name || 'Pilih Kota/Kabupaten';
 
@@ -131,8 +175,21 @@ export default function RegisterScreen() {
     <SafeAreaView className="flex-1 bg-white">
       <StatusBar style="dark" />
       
-      {renderSelectModal(showProvinceSelect, provinces, (id) => setFormData({...formData, provinceId: id, regencyId: ''}), () => setShowProvinceSelect(false), 'Pilih Provinsi')}
-      {renderSelectModal(showRegencySelect, regencies, (id) => setFormData({...formData, regencyId: id}), () => setShowRegencySelect(false), 'Pilih Kota/Kabupaten')}
+      <SelectionModal 
+        visible={showProvinceSelect}
+        items={provinces}
+        onSelect={(id) => setFormData({...formData, provinceId: id, regencyId: ''})}
+        onClose={() => setShowProvinceSelect(false)}
+        title="Pilih Provinsi"
+      />
+
+      <SelectionModal 
+        visible={showRegencySelect}
+        items={regencies}
+        onSelect={(id) => setFormData({...formData, regencyId: id})}
+        onClose={() => setShowRegencySelect(false)}
+        title="Pilih Kota/Kabupaten"
+      />
 
       <KeyboardAvoidingView 
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'} 
@@ -150,14 +207,13 @@ export default function RegisterScreen() {
                 </Text>
             </View>
 
-            <View className="space-y-4">
-                
-                <View>
+            <View>
+                <View className="mb-4">
                     <Text className="text-gray-700 mb-2 font-plus-jakarta-extrabold text-sm">Nama Lengkap</Text>
-                    <View className="flex-row items-center w-full bg-white border border-gray-200 rounded-xl px-4 py-3 focus:border-blue-500">
+                    <View className="flex-row items-center w-full bg-white border border-gray-200 rounded-xl px-4 py-2 focus:border-blue-500">
                         <User size={20} color="#9CA3AF" className="mr-3" />
                         <TextInput
-                            className="flex-1 font-plus-jakarta-semibold text-gray-900"
+                            className="flex-1 font-plus-jakarta-semibold text-gray-900 py-2"
                             placeholder="Masukkan nama lengkap Anda"
                             placeholderTextColor="#9CA3AF"
                             value={formData.name}
@@ -166,12 +222,12 @@ export default function RegisterScreen() {
                     </View>
                 </View>
 
-                <View>
+                <View className="mb-4">
                     <Text className="text-gray-700 mb-2 font-plus-jakarta-extrabold text-sm">NIK (Wajib)</Text>
-                    <View className="flex-row items-center w-full bg-white border border-gray-200 rounded-xl px-4 py-3 focus:border-blue-500">
+                    <View className="flex-row items-center w-full bg-white border border-gray-200 rounded-xl px-4 py-2 focus:border-blue-500">
                         <User size={20} color="#9CA3AF" className="mr-3" />
                         <TextInput
-                            className="flex-1 font-plus-jakarta-semibold text-gray-900"
+                            className="flex-1 font-plus-jakarta-semibold text-gray-900 py-2"
                             placeholder="Masukkan 16 digit NIK"
                             placeholderTextColor="#9CA3AF"
                             keyboardType="number-pad"
@@ -182,12 +238,12 @@ export default function RegisterScreen() {
                     </View>
                 </View>
 
-                <View>
+                <View className="mb-4">
                     <Text className="text-gray-700 mb-2 font-plus-jakarta-extrabold text-sm">No Telepon</Text>
-                    <View className="flex-row items-center w-full bg-white border border-gray-200 rounded-xl px-4 py-3 focus:border-blue-500">
+                    <View className="flex-row items-center w-full bg-white border border-gray-200 rounded-xl px-4 py-2 focus:border-blue-500">
                         <Phone size={20} color="#9CA3AF" className="mr-3" />
                         <TextInput
-                            className="flex-1 font-plus-jakarta-semibold text-gray-900"
+                            className="flex-1 font-plus-jakarta-semibold text-gray-900 py-2"
                             placeholder="Contoh: 081234567890"
                             placeholderTextColor="#9CA3AF"
                             keyboardType="phone-pad"
@@ -197,24 +253,24 @@ export default function RegisterScreen() {
                     </View>
                 </View>
 
-                <View>
+                <View className="mb-4">
                     <Text className="text-gray-700 mb-2 font-plus-jakarta-bold text-sm">Provinsi</Text>
                     <TouchableOpacity 
-                        className="flex-row items-center w-full bg-white border border-gray-200 rounded-xl px-4 py-3"
+                        className="flex-row items-center w-full bg-white border border-gray-200 rounded-xl px-4 py-2"
                         onPress={() => setShowProvinceSelect(true)}
                     >
                         <MapPin size={20} color="#9CA3AF" className="mr-3" />
-                        <Text className={`flex-1 font-plus-jakarta-medium ${formData.provinceId ? 'text-gray-900' : 'text-gray-400'}`}>
+                        <Text className={`flex-1 font-plus-jakarta-medium py-2 ${formData.provinceId ? 'text-gray-900' : 'text-gray-400'}`}>
                             {selectedProvinceName}
                         </Text>
                         <ChevronDown size={20} color="#9CA3AF" />
                     </TouchableOpacity>
                 </View>
 
-                <View>
+                <View className="mb-4">
                     <Text className="text-gray-700 mb-2 font-plus-jakarta-bold text-sm">Kota/Kabupaten</Text>
                     <TouchableOpacity 
-                        className="flex-row items-center w-full bg-white border border-gray-200 rounded-xl px-4 py-3"
+                        className="flex-row items-center w-full bg-white border border-gray-200 rounded-xl px-4 py-2"
                         onPress={() => {
                             if (!formData.provinceId) {
                                 Alert.alert('Info', 'Pilih Provinsi terlebih dahulu');
@@ -224,19 +280,19 @@ export default function RegisterScreen() {
                         }}
                     >
                         <Building size={20} color="#9CA3AF" className="mr-3" />
-                        <Text className={`flex-1 font-plus-jakarta-medium ${formData.regencyId ? 'text-gray-900' : 'text-gray-400'}`}>
+                        <Text className={`flex-1 font-plus-jakarta-medium py-2 ${formData.regencyId ? 'text-gray-900' : 'text-gray-400'}`}>
                             {selectedRegencyName}
                         </Text>
                         <ChevronDown size={20} color="#9CA3AF" />
                     </TouchableOpacity>
                 </View>
 
-                <View>
+                <View className="mb-4">
                     <Text className="text-gray-700 mb-2 font-plus-jakarta-bold text-sm">Kata Sandi</Text>
-                    <View className="flex-row items-center w-full bg-white border border-gray-200 rounded-xl px-4 py-3 focus:border-blue-500">
+                    <View className="flex-row items-center w-full bg-white border border-gray-200 rounded-xl px-4 py-2 focus:border-blue-500">
                         <Lock size={20} color="#9CA3AF" className="mr-3" />
                         <TextInput
-                            className="flex-1 font-plus-jakarta-medium text-gray-900"
+                            className="flex-1 font-plus-jakarta-medium text-gray-900 py-2"
                             placeholder="Buat kata sandi"
                             placeholderTextColor="#9CA3AF"
                             secureTextEntry={!showPassword}
@@ -249,12 +305,12 @@ export default function RegisterScreen() {
                     </View>
                 </View>
 
-                <View>
+                <View className="mb-4">
                     <Text className="text-gray-700 mb-2 font-plus-jakarta-bold text-sm">Ulangi Kata Sandi</Text>
-                    <View className="flex-row items-center w-full bg-white border border-gray-200 rounded-xl px-4 py-3 focus:border-blue-500">
+                    <View className="flex-row items-center w-full bg-white border border-gray-200 rounded-xl px-4 py-2 focus:border-blue-500">
                         <Lock size={20} color="#9CA3AF" className="mr-3" />
                         <TextInput
-                            className="flex-1 font-plus-jakarta-medium text-gray-900"
+                            className="flex-1 font-plus-jakarta-medium text-gray-900 py-2"
                             placeholder="Ulangi kata sandi"
                             placeholderTextColor="#9CA3AF"
                             secureTextEntry={!showConfirmPassword}

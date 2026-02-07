@@ -10,7 +10,7 @@ export function Register() {
           </div>
           <h1 className="text-2xl font-bold text-foreground font-heading mb-2">Daftar Akun</h1>
           <p className="text-muted-foreground text-center">
-            Lengkapi data diri Anda untuk mendaftar layanan SPPG BGN
+            Lengkapi data diri Anda untuk mendaftar layanan SPPG Mobile
           </p>
         </div>
         <div className="flex flex-col gap-5">

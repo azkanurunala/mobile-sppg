@@ -22,7 +22,7 @@ export function Login() {
               Selamat Datang
             </h1>
             <p eid="e8" class="text-white/90 text-center">
-              Silakan masuk ke akun SPPG BGN Anda sebagai Korwil{" "}
+              Silakan masuk ke akun SPPG Mobile Anda sebagai Korwil{" "}
             </p>
           </div>
         </div>

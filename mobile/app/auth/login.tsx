@@ -56,7 +56,7 @@ export default function LoginScreen() {
                 Selamat Datang
             </Text>
             <Text className="text-white/80 font-plus-jakarta-semibold text-center text-sm px-4 leading-5">
-                Silakan masuk ke akun SPPG BGN Anda sebagai Korwil
+                Silakan masuk ke akun SPPG Mobile Anda sebagai Korwil
             </Text>
         </View>
 
@@ -67,12 +67,12 @@ export default function LoginScreen() {
                 
                 <View className="space-y-6">
                     {/* Phone Input */}
-                    <View>
+                    <View className='mb-4'>
                         <Text className="text-gray-900 font-bold font-plus-jakarta-extrabold text-sm mb-2.5">No Handphone Anda</Text>
                         <View className="flex-row items-center bg-white border border-gray-200 rounded-2xl px-4 h-[58px]">
                              <Phone size={20} color="#9CA3AF" className="mr-3" />
                              <TextInput
-                                className="flex-1 text-gray-900 font-plus-jakarta-semibold text-base h-full"
+                                className="flex-1 text-gray-900 font-plus-jakarta-semibold text-base h-full pl-4"
                                 placeholder="Masukkan Nomor Handphone Anda"
                                 placeholderTextColor="#9CA3AF"
                                 autoCapitalize="none"
@@ -87,7 +87,7 @@ export default function LoginScreen() {
                     </View>
 
                     {/* Password Input */}
-                    <View>
+                    <View className='mb-4'>
                         <View className="flex-row justify-between items-center mb-2.5">
                             <Text className="text-gray-900 font-bold font-plus-jakarta-extrabold text-sm">Kata Sandi</Text>
                             <TouchableOpacity>
@@ -97,7 +97,7 @@ export default function LoginScreen() {
                         <View className="flex-row items-center bg-white border border-gray-200 rounded-2xl px-4 h-[58px]">
                              <Lock size={20} color="#9CA3AF" className="mr-3" />
                              <TextInput
-                                className="flex-1 text-gray-900 font-plus-jakarta-semibold text-base h-full bg-transparent"
+                                className="flex-1 text-gray-900 font-plus-jakarta-semibold text-base h-full bg-transparent pl-4"
                                 placeholder="Masukkan kata sandi"
                                 placeholderTextColor="#9CA3AF"
                                 secureTextEntry={!showPassword}
@@ -138,7 +138,7 @@ export default function LoginScreen() {
                         ) : (
                             <View className="flex-row items-center">
                                 <ScanFace color="white" size={20} className="mr-2 opacity-0 w-0" /> 
-                                <Text className="text-white text-base font-bold font-plus-jakarta-extrabold">
+                                <Text className="text-white text-base font-bold font-plus-jakarta-extrabold ml-2">
                                     Masuk
                                 </Text>
                             </View>
@@ -155,7 +155,7 @@ export default function LoginScreen() {
                     {/* Biometric Button */}
                     <TouchableOpacity className="w-full bg-orange-50 border border-orange-100 rounded-2xl h-[58px] flex-row items-center justify-center active:bg-orange-100 transition-all">
                         <Fingerprint size={20} className="text-orange-500 mr-2" color="#F97316" />
-                        <Text className="text-orange-600 font-bold font-plus-jakarta-extrabold text-sm">
+                        <Text className="text-orange-600 font-bold font-plus-jakarta-extrabold text-sm ml-2">
                             Masuk dengan Biometrik
                         </Text>
                     </TouchableOpacity>
