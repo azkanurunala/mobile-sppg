@@ -4,9 +4,10 @@ import { prisma } from '@/lib/prisma';
 import { verifyJwt } from '@/lib/jwt';
 
 // GET: Fetch checklist items and their status for this SPPG
-export async function GET(request: Request, { params }: { params: { id: string } }) {
+export async function GET(request: Request, context: { params: Promise<{ id: string }> }) {
   try {
-    const sppgId = params.id;
+    const { id } = await context.params;
+    const sppgId = id;
 
     // 1. Fetch all Master Items (to ensure we show everything, even if not yet init in progress table)
     const masterItems = await prisma.masterChecklistItem.findMany({
@@ -54,9 +55,10 @@ export async function GET(request: Request, { params }: { params: { id: string }
 }
 
 // POST: Update checklist status
-export async function POST(request: Request, { params }: { params: { id: string } }) {
+export async function POST(request: Request, context: { params: Promise<{ id: string }> }) {
     try {
-        const sppgId = params.id;
+        const { id } = await context.params;
+        const sppgId = id;
         const body = await request.json();
         const { items } = body; // Array of { masterItemId, isCompleted }
 
