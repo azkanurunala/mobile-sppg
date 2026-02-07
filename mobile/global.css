@@ -4,34 +4,128 @@
 
 @layer base {
   :root {
-    --background: 248 100% 98%; /* #F8FAFC - slate-50 */
-    --foreground: 222 47% 11%; /* #0F172A - slate-900 */
+    /* BACKGROUND HALAMAN (Bagian bawah yang putih keabuan) */
+    --background: 240 10% 98%; /* #F8F9FD converted to HSL approx */
+    --foreground: 215 28% 17%; /* #1F2937 used directly or HSL */
 
-    --primary: 221 83% 53%; /* #2563EB - blue-600 */
+    /* WARNA UTAMA (Header Biru & Tombol Masuk) */
+    --primary: 222 86% 57%; /* #356DF1 */
     --primary-foreground: 0 0% 100%; /* #FFFFFF */
 
-    --secondary: 27 66% 97%; /* #FDF4F0 - orange-50ish */
-    --secondary-foreground: 27 90% 52%; /* #F29119 - orange-500 */
+    /* WARNA SEKUNDER (Tombol Biometrik - Cream & Oranye) */
+    --secondary: 33 100% 96%; /* #FFF7ED */
+    --secondary-foreground: 20 83% 48%; /* #EA580C */
 
-    --muted: 210 40% 96%; /* #F1F5F9 - slate-100 */
-    --muted-foreground: 215 16% 47%; /* #64748B - slate-500 */
+    /* WARNA MUTED (Placeholder Text & Disabled) */
+    --muted: 220 14% 96%; /* #F3F4F6 */
+    --muted-foreground: 218 5% 63%; /* #9CA3AF */
 
-    --accent: 175 84% 93%; /* #CCFBF1 - teal-100 */
-    --accent-foreground: 176 77% 26%; /* #0F766E - teal-700 */
+    /* WARNA ACCENT (Toast Success - Kuning/Emas) */
+    --accent: 54 86% 95%; /* #FEFCE8 */
+    --accent-foreground: 33 89% 37%; /* #B45309 */
 
-    --destructive: 0 84% 60%; /* #EF4444 - red-500 */
-    --destructive-foreground: 0 0% 100%; /* #FFFFFF */
+    /* ERROR (Teks Peringatan Merah) */
+    --destructive: 0 84% 60%; /* #EF4444 */
+    --destructive-foreground: 0 0% 100%;
 
-    --border: 214 32% 91%; /* #E2E6F0 - slate-200 */
-    --input: 214 32% 91%; /* #E2E6F0 - slate-200 */
-    --ring: 175 84% 32%; /* #0D9488 - teal-600 */
+    /* KARTU FORMULIR (Box Putih) */
+    --card: 0 0% 100%; /* #FFFFFF */
+    --card-foreground: 215 28% 17%; /* #1F2937 */
 
+    --popover: 0 0% 100%; /* #FFFFFF */
+    --popover-foreground: 215 28% 17%; /* #1F2937 */
+
+    /* BORDER & INPUT */
+    --border: 220 13% 91%; /* #E5E7EB */
+    --input: 0 0% 100%;   /* Background input #FFFFFF */
+    --ring: 222 86% 57%;    /* #356DF1 */
+
+    /* CHARTS */
+    --chart-1: 222 86% 57%;
+    --chart-2: 24 95% 53%;
+    --chart-3: 48 96% 53%;
+    --chart-4: 142 76% 36%;
+    --chart-5: 243 75% 59%;
+
+    /* RADIUS */
     --radius: 1rem;
-    
-    --chart-1: 38 92% 50%; /* #F59E0B */
-    --chart-2: 262 83% 58%; /* #A78BFA */
-    --chart-3: 343 95% 71%; /* #FB7185 */
-    --chart-4: 84 81% 44%; /* #84CC16 */
-    --chart-5: 217 91% 60%; /* #3B82F6 */
   }
+
+  .dark {
+    /* BACKGROUND HALAMAN (Bagian bawah yang putih keabuan) */
+    --background: 240 10% 98%; 
+    --foreground: 215 28% 17%; 
+
+    /* WARNA UTAMA (Header Biru & Tombol Masuk) */
+    --primary: 222 86% 57%; 
+    --primary-foreground: 0 0% 100%; 
+
+    /* WARNA SEKUNDER (Tombol Biometrik - Cream & Oranye) */
+    --secondary: 33 100% 96%; 
+    --secondary-foreground: 20 83% 48%; 
+
+    /* WARNA MUTED (Placeholder Text & Disabled) */
+    --muted: 220 14% 96%; 
+    --muted-foreground: 218 5% 63%; 
+
+    /* WARNA ACCENT (Toast Success - Kuning/Emas) */
+    --accent: 54 86% 95%; 
+    --accent-foreground: 33 89% 37%; 
+
+    /* ERROR (Teks Peringatan Merah) */
+    --destructive: 0 84% 60%; 
+    --destructive-foreground: 0 0% 100%; 
+
+    /* KARTU FORMULIR (Box Putih) */
+    --card: 0 0% 100%; 
+    --card-foreground: 215 28% 17%; 
+
+    --popover: 0 0% 100%; 
+    --popover-foreground: 215 28% 17%; 
+
+    /* BORDER & INPUT */
+    --border: 220 13% 91%; 
+    --input: 0 0% 100%;   
+    --ring: 222 86% 57%;    
+
+    /* CHARTS */
+    --chart-1: 222 86% 57%;
+    --chart-2: 24 95% 53%;
+    --chart-3: 48 96% 53%;
+    --chart-4: 142 76% 36%;
+    --chart-5: 243 75% 59%;
+
+    /* RADIUS */
+    --radius: 1rem;
+  }
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  --color-chart-1: var(--chart-1);
+  --color-chart-2: var(--chart-2);
+  --color-chart-3: var(--chart-3);
+  --color-chart-4: var(--chart-4);
+  --color-chart-5: var(--chart-5);
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
 }

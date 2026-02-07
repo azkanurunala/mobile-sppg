@@ -1,125 +1,149 @@
-
-import React, { useCallback, useState } from 'react';
-import { View, Text, ScrollView, TouchableOpacity, Image, Alert } from 'react-native';
+import React from 'react';
+import { View, Text, TouchableOpacity, ScrollView, Switch, Image, Alert } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { StatusBar } from 'expo-status-bar';
-import { User, Phone, MapPin, Edit3, Lock, LogOut, ChevronRight } from 'lucide-react-native';
-import { useRouter, useFocusEffect } from 'expo-router';
 import { useAuth } from '@/context/AuthContext';
-import { fetchApi } from '@/lib/api';
+import { useRouter } from 'expo-router';
+import { 
+  LogOut, 
+  ChevronRight, 
+  User, 
+  Phone, 
+  MapPin, 
+  Edit2, 
+  ShieldCheck,
+  Lock,
+  Fingerprint
+} from 'lucide-react-native';
 
 export default function ProfileScreen() {
+  const { user, signOut } = useAuth();
   const router = useRouter();
-  const { user: authUser, signOut } = useAuth();
-  const [profile, setProfile] = useState<any>(null);
 
-  const fetchProfile = async () => {
-    try {
-        const data = await fetchApi('/user/me');
-        setProfile(data);
-    } catch (error) {
-        console.error('Failed to fetch profile', error);
-    }
-  };
-
-  useFocusEffect(
-    useCallback(() => {
-        fetchProfile();
-    }, [])
-  );
-
-  const handleLogout = async () => {
+  const handleLogout = () => {
     Alert.alert(
-        'Konfirmasi',
-        'Apakah Anda yakin ingin keluar?',
-        [
-            { text: 'Batal', style: 'cancel' },
-            { 
-                text: 'Ya, Keluar', 
-                style: 'destructive',
-                onPress: async () => {
-                    await signOut();
-                    router.replace('/auth/login');
-                }
-            }
-        ]
+      "Konfirmasi Keluar",
+      "Apakah Anda yakin ingin keluar dari aplikasi?",
+      [
+        { text: "Batal", style: "cancel" },
+        { 
+          text: "Keluar", 
+          style: "destructive", 
+          onPress: async () => {
+            await signOut();
+            router.replace('/auth/login');
+          } 
+        }
+      ]
     );
   };
 
-  const displayUser = profile || authUser;
+  const getInitials = (name: string) => {
+    if (!name) return 'U';
+    return name
+      .split(' ')
+      .map((n) => n[0])
+      .join('')
+      .toUpperCase()
+      .slice(0, 3); // Max 3 chars
+  };
 
   return (
-    <SafeAreaView className="flex-1 bg-gray-50">
-      <StatusBar style="dark" />
+    <View className="flex-1 bg-gray-50">
+      <StatusBar style="light" />
       
-      <View className="p-6 bg-white mb-4">
-        <View className="flex-row items-center">
-             <View className="w-16 h-16 bg-blue-100 rounded-full items-center justify-center mx-auto mb-4">
-                <Text className="text-blue-600 text-2xl font-bold">{displayUser?.name?.charAt(0)}</Text>
-             </View>
-        </View>
-        <Text className="text-xl font-bold text-gray-900 text-center font-plus-jakarta-bold">{displayUser?.name}</Text>
-        <Text className="text-gray-500 text-center mt-1 text-sm font-plus-jakarta-medium">{displayUser?.role}</Text>
+      {/* Blue Header Background */}
+      <View className="bg-blue-600 pb-32 pt-12 px-6 rounded-b-[40px] relative items-center">
+          <Text className="text-white font-bold text-xl font-plus-jakarta-bold self-start mb-6">Profil Saya</Text>
+          
+          {/* Profile Card */}
+          <View className="items-center relative mb-4">
+              <View className="w-28 h-28 bg-white rounded-3xl items-center justify-center shadow-lg shadow-blue-800/30">
+                  <Text className="text-blue-600 text-4xl font-bold font-plus-jakarta-bold">
+                    {getInitials(user?.name || 'User')}
+                  </Text>
+              </View>
+              <TouchableOpacity onPress={() => router.push('/profile/edit')} className="absolute -bottom-2 -right-2 bg-white p-2 rounded-full shadow-md border border-gray-100">
+                  <Edit2 size={16} color="#2563EB" />
+              </TouchableOpacity>
+          </View>
+          
+          <Text className="text-white text-xl font-bold font-plus-jakarta-bold mt-2 text-center">
+            {user?.name || 'Nama Pengguna'}
+          </Text>
+          
+          <View className="flex-row items-center mt-2 opacity-90">
+             <Phone size={14} color="white" className="mr-2" />
+             <Text className="text-white font-medium font-plus-jakarta-medium text-sm">
+                +62 {user?.phone || '812-3456-7890'}
+             </Text>
+          </View>
+
+          <View className="flex-row items-start mt-1 opacity-90">
+             <MapPin size={14} color="white" className="mr-2 mt-0.5" />
+             <Text className="text-white font-medium font-plus-jakarta-medium text-sm text-center max-w-[250px]">
+                {user?.location || 'Kab. Maluku Tengah, Maluku'}
+             </Text>
+          </View>
       </View>
 
-      <ScrollView className="flex-1 px-4">
-        {/* Info Card */}
-        <View className="bg-white rounded-xl p-4 shadow-sm border border-gray-100 mb-4 space-y-4">
-             <View className="flex-row items-center">
-                <Phone size={20} color="#4B5563" />
-                <View className="ml-3">
-                    <Text className="text-gray-500 text-xs">No. Handphone</Text>
-                    <Text className="text-gray-900 font-medium">{displayUser?.phoneNumber}</Text>
-                </View>
-             </View>
-            
-             <View className="h-[1px] bg-gray-100" />
+      <ScrollView className="flex-1 px-6 pt-8 -mt-10">
+          <Text className="text-gray-500 font-bold font-plus-jakarta-bold mb-4 text-xs uppercase tracking-wider">Keamanan</Text>
+          
+          <View className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden mb-6">
+              {/* Biometric Toggle */}
+              <TouchableOpacity className="flex-row items-center justify-between p-4 border-b border-gray-50">
+                  <View className="flex-row items-center">
+                      <View className="w-10 h-10 bg-purple-100 rounded-full items-center justify-center mr-3">
+                          <ShieldCheck size={20} color="#9333EA" />
+                      </View>
+                      <View>
+                          <Text className="text-gray-900 font-bold text-sm font-plus-jakarta-bold">Login dengan Biometrik</Text>
+                          <Text className="text-gray-500 text-xs mt-0.5">Aktifkan keamanan biometrik</Text>
+                      </View>
+                  </View>
+                  <ChevronRight size={20} color="#9CA3AF" />
+              </TouchableOpacity>
 
-             <View className="flex-row items-center">
-                <MapPin size={20} color="#4B5563" />
-                <View className="ml-3">
-                    <Text className="text-gray-500 text-xs">Lokasi Tugas</Text>
-                    <Text className="text-gray-900 font-medium">{displayUser?.location || 'Belum diatur'}</Text>
-                </View>
-             </View>
-        </View>
-
-        {/* Menu Actions */}
-        <View className="space-y-3">
-            <TouchableOpacity 
-                className="bg-white p-4 rounded-xl flex-row items-center justify-between border border-gray-100"
-                onPress={() => router.push('/profile/edit')}
-            >
-                <View className="flex-row items-center">
-                    <Edit3 size={20} color="#2563EB" />
-                    <Text className="ml-3 text-gray-900 font-bold">Update Data</Text>
-                </View>
-                <ChevronRight size={20} color="#9CA3AF" />
-            </TouchableOpacity>
-
-            <TouchableOpacity 
-                className="bg-white p-4 rounded-xl flex-row items-center justify-between border border-gray-100"
+              {/* Change Password */}
+              <TouchableOpacity 
+                className="flex-row items-center justify-between p-4"
                 onPress={() => router.push('/profile/change-password')}
-            >
-                <View className="flex-row items-center">
-                    <Lock size={20} color="#2563EB" />
-                    <Text className="ml-3 text-gray-900 font-bold">Ubah Kata Sandi</Text>
-                </View>
-                <ChevronRight size={20} color="#9CA3AF" />
-            </TouchableOpacity>
+              >
+                  <View className="flex-row items-center">
+                      <View className="w-10 h-10 bg-teal-100 rounded-full items-center justify-center mr-3">
+                          <Lock size={20} color="#0D9488" />
+                      </View>
+                      <View>
+                          <Text className="text-gray-900 font-bold text-sm font-plus-jakarta-bold">Ubah Kata Sandi</Text>
+                          <Text className="text-gray-500 text-xs mt-0.5">Perbarui kata sandi Anda</Text>
+                      </View>
+                  </View>
+                  <ChevronRight size={20} color="#9CA3AF" />
+              </TouchableOpacity>
+          </View>
 
-             <TouchableOpacity 
-                className="bg-white p-4 rounded-xl flex-row items-center justify-between border border-gray-100 mt-4"
+          <Text className="text-center text-gray-400 text-xs font-plus-jakarta-medium mb-6">SPPG BGN Versi 1.0.0</Text>
+
+          {/* Logout Button */}
+          <View className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden mb-10">
+            <TouchableOpacity 
+                className="flex-row items-center justify-between p-4"
                 onPress={handleLogout}
             >
                 <View className="flex-row items-center">
-                    <LogOut size={20} color="#EF4444" />
-                    <Text className="ml-3 text-red-600 font-bold">Keluar</Text>
+                    <View className="w-10 h-10 bg-red-100 rounded-full items-center justify-center mr-3">
+                        <LogOut size={20} color="#DC2626" />
+                    </View>
+                     <View>
+                          <Text className="text-red-600 font-bold text-sm font-plus-jakarta-bold">Keluar</Text>
+                          <Text className="text-red-400 text-xs mt-0.5">Keluar dari akun Anda</Text>
+                      </View>
                 </View>
+                <ChevronRight size={20} color="#F87171" />
             </TouchableOpacity>
-        </View>
-
+          </View>
       </ScrollView>
-    </SafeAreaView>
+    </View>
   );
 }

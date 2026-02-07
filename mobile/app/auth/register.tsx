@@ -1,9 +1,9 @@
 
 import React, { useState, useEffect } from 'react';
-import { View, Text, TextInput, TouchableOpacity, ScrollView, Alert, ActivityIndicator } from 'react-native';
+import { View, Text, TextInput, TouchableOpacity, ScrollView, Alert, ActivityIndicator, KeyboardAvoidingView, Platform } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { StatusBar } from 'expo-status-bar';
-import { Eye, EyeOff, ChevronLeft } from 'lucide-react-native';
+import { Eye, EyeOff, User, Phone, MapPin, Building, Lock, ArrowRight, UserPlus, ChevronDown } from 'lucide-react-native';
 import { useRouter } from 'expo-router';
 import { fetchApi } from '@/lib/api';
 
@@ -62,7 +62,7 @@ export default function RegisterScreen() {
 
   const handleRegister = async () => {
     if (!formData.name || !formData.phoneNumber || !formData.password || !formData.provinceId || !formData.regencyId || !formData.nik) {
-        Alert.alert('Error', 'Mohon lengkapi semua data including NIK');
+        Alert.alert('Error', 'Mohon lengkapi semua data termasuk NIK');
         return;
     }
 
@@ -99,7 +99,12 @@ export default function RegisterScreen() {
     return (
         <View className="absolute top-0 bottom-0 left-0 right-0 bg-black/50 z-50 justify-center px-6 py-20">
             <View className="bg-white rounded-xl p-4 flex-1">
-                <Text className="font-bold text-lg mb-4">{title}</Text>
+                <View className="flex-row justify-between items-center mb-4 border-b border-gray-100 pb-2">
+                    <Text className="font-bold text-lg font-plus-jakarta-bold">{title}</Text>
+                    <TouchableOpacity onPress={onClose}>
+                        <Text className="text-blue-600 font-plus-jakarta-bold">Tutup</Text>
+                    </TouchableOpacity>
+                </View>
                 <ScrollView>
                     {items.map(item => (
                         <TouchableOpacity 
@@ -114,9 +119,6 @@ export default function RegisterScreen() {
                         </TouchableOpacity>
                     ))}
                 </ScrollView>
-                <TouchableOpacity className="mt-4 p-3 bg-gray-100 rounded-lg" onPress={onClose}>
-                    <Text className="text-center font-bold">Tutup</Text>
-                </TouchableOpacity>
             </View>
         </View>
     );
@@ -132,133 +134,166 @@ export default function RegisterScreen() {
       {renderSelectModal(showProvinceSelect, provinces, (id) => setFormData({...formData, provinceId: id, regencyId: ''}), () => setShowProvinceSelect(false), 'Pilih Provinsi')}
       {renderSelectModal(showRegencySelect, regencies, (id) => setFormData({...formData, regencyId: id}), () => setShowRegencySelect(false), 'Pilih Kota/Kabupaten')}
 
-      <View className="flex-row items-center px-4 py-2 border-b border-gray-100">
-        <TouchableOpacity onPress={() => router.back()} className="p-2">
-            <ChevronLeft size={24} color="#1F2937" />
-        </TouchableOpacity>
-        <Text className="text-lg font-bold text-gray-900 ml-2 font-plus-jakarta-bold">Daftar Akun Korwil</Text>
-      </View>
-
-      <ScrollView className="flex-1 px-6 pt-6">
-        <View className="space-y-4 pb-10">
-            
-            <View>
-                <Text className="text-gray-700 mb-2 font-plus-jakarta-medium">Nama Lengkap</Text>
-                <TextInput
-                    className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 font-plus-jakarta-medium"
-                    placeholder="Masukkan nama lengkap"
-                    value={formData.name}
-                    onChangeText={(text) => setFormData({...formData, name: text})}
-                />
+      <KeyboardAvoidingView 
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'} 
+        className="flex-1"
+      >
+        <ScrollView className="flex-1 px-6" contentContainerStyle={{ paddingBottom: 40, paddingTop: 20 }}>
+            {/* Header Section */}
+            <View className="items-center mb-8">
+                <View className="w-20 h-20 bg-blue-600 rounded-2xl items-center justify-center mb-4 shadow-lg shadow-blue-200">
+                    <UserPlus size={40} color="white" />
+                </View>
+                <Text className="text-2xl font-bold text-gray-900 font-plus-jakarta-bold mb-2">Daftar Akun</Text>
+                <Text className="text-gray-500 text-center font-plus-jakarta-medium px-4">
+                    Lengkapi data diri Anda untuk mendaftar layanan SPPG BGN
+                </Text>
             </View>
 
-            <View>
-                <Text className="text-gray-700 mb-2 font-plus-jakarta-medium">NIK (Wajib)</Text>
-                <TextInput
-                    className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 font-plus-jakarta-medium"
-                    placeholder="Masukkan 16 digit NIK"
-                    keyboardType="number-pad"
-                    maxLength={16}
-                    value={formData.nik}
-                    onChangeText={(text) => setFormData({...formData, nik: text})}
-                />
-            </View>
+            <View className="space-y-4">
+                
+                <View>
+                    <Text className="text-gray-700 mb-2 font-plus-jakarta-bold text-sm">Nama Lengkap</Text>
+                    <View className="flex-row items-center w-full bg-white border border-gray-200 rounded-xl px-4 py-3 focus:border-blue-500">
+                        <User size={20} color="#9CA3AF" className="mr-3" />
+                        <TextInput
+                            className="flex-1 font-plus-jakarta-medium text-gray-900"
+                            placeholder="Masukkan nama lengkap Anda"
+                            placeholderTextColor="#9CA3AF"
+                            value={formData.name}
+                            onChangeText={(text) => setFormData({...formData, name: text})}
+                        />
+                    </View>
+                </View>
 
-            <View>
-                <Text className="text-gray-700 mb-2 font-plus-jakarta-medium">No. Handphone</Text>
-                <TextInput
-                    className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 font-plus-jakarta-medium"
-                    placeholder="Contoh: 081234567890"
-                    keyboardType="phone-pad"
-                    value={formData.phoneNumber}
-                    onChangeText={(text) => setFormData({...formData, phoneNumber: text})}
-                />
-            </View>
+                <View>
+                    <Text className="text-gray-700 mb-2 font-plus-jakarta-bold text-sm">NIK (Wajib)</Text>
+                    <View className="flex-row items-center w-full bg-white border border-gray-200 rounded-xl px-4 py-3 focus:border-blue-500">
+                        <User size={20} color="#9CA3AF" className="mr-3" />
+                        <TextInput
+                            className="flex-1 font-plus-jakarta-medium text-gray-900"
+                            placeholder="Masukkan 16 digit NIK"
+                            placeholderTextColor="#9CA3AF"
+                            keyboardType="number-pad"
+                            maxLength={16}
+                            value={formData.nik}
+                            onChangeText={(text) => setFormData({...formData, nik: text})}
+                        />
+                    </View>
+                </View>
 
-            <View>
-                <Text className="text-gray-700 mb-2 font-plus-jakarta-medium">Provinsi</Text>
-                <TouchableOpacity 
-                    className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3"
-                    onPress={() => setShowProvinceSelect(true)}
-                >
-                    <Text className={`font-plus-jakarta-medium ${formData.provinceId ? 'text-gray-900' : 'text-gray-400'}`}>
-                        {selectedProvinceName}
-                    </Text>
-                </TouchableOpacity>
-            </View>
+                <View>
+                    <Text className="text-gray-700 mb-2 font-plus-jakarta-bold text-sm">No Telepon</Text>
+                    <View className="flex-row items-center w-full bg-white border border-gray-200 rounded-xl px-4 py-3 focus:border-blue-500">
+                        <Phone size={20} color="#9CA3AF" className="mr-3" />
+                        <TextInput
+                            className="flex-1 font-plus-jakarta-medium text-gray-900"
+                            placeholder="Contoh: 081234567890"
+                            placeholderTextColor="#9CA3AF"
+                            keyboardType="phone-pad"
+                            value={formData.phoneNumber}
+                            onChangeText={(text) => setFormData({...formData, phoneNumber: text})}
+                        />
+                    </View>
+                </View>
 
-            <View>
-                <Text className="text-gray-700 mb-2 font-plus-jakarta-medium">Kota/Kabupaten</Text>
-                <TouchableOpacity 
-                    className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3"
-                    onPress={() => {
-                        if (!formData.provinceId) {
-                            Alert.alert('Info', 'Pilih Provinsi terlebih dahulu');
-                            return;
-                        }
-                        setShowRegencySelect(true);
-                    }}
-                >
-                    <Text className={`font-plus-jakarta-medium ${formData.regencyId ? 'text-gray-900' : 'text-gray-400'}`}>
-                        {selectedRegencyName}
-                    </Text>
-                </TouchableOpacity>
-            </View>
-
-            <View>
-                <Text className="text-gray-700 mb-2 font-plus-jakarta-medium">Kata Sandi</Text>
-                <View className="relative">
-                    <TextInput
-                        className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 pr-12 font-plus-jakarta-medium"
-                        placeholder="Buat kata sandi"
-                        secureTextEntry={!showPassword}
-                        value={formData.password}
-                        onChangeText={(text) => setFormData({...formData, password: text})}
-                    />
+                <View>
+                    <Text className="text-gray-700 mb-2 font-plus-jakarta-bold text-sm">Provinsi</Text>
                     <TouchableOpacity 
-                        className="absolute right-4 top-3"
-                        onPress={() => setShowPassword(!showPassword)}
+                        className="flex-row items-center w-full bg-white border border-gray-200 rounded-xl px-4 py-3"
+                        onPress={() => setShowProvinceSelect(true)}
                     >
-                        {showPassword ? <EyeOff size={20} color="#9CA3AF" /> : <Eye size={20} color="#9CA3AF" />}
+                        <MapPin size={20} color="#9CA3AF" className="mr-3" />
+                        <Text className={`flex-1 font-plus-jakarta-medium ${formData.provinceId ? 'text-gray-900' : 'text-gray-400'}`}>
+                            {selectedProvinceName}
+                        </Text>
+                        <ChevronDown size={20} color="#9CA3AF" />
                     </TouchableOpacity>
                 </View>
-            </View>
 
-            <View>
-                <Text className="text-gray-700 mb-2 font-plus-jakarta-medium">Konfirmasi Kata Sandi</Text>
-                <View className="relative">
-                    <TextInput
-                        className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 pr-12 font-plus-jakarta-medium"
-                        placeholder="Ulangi kata sandi"
-                        secureTextEntry={!showConfirmPassword}
-                        value={formData.confirmPassword}
-                        onChangeText={(text) => setFormData({...formData, confirmPassword: text})}
-                    />
+                <View>
+                    <Text className="text-gray-700 mb-2 font-plus-jakarta-bold text-sm">Kota/Kabupaten</Text>
                     <TouchableOpacity 
-                        className="absolute right-4 top-3"
-                        onPress={() => setShowConfirmPassword(!showConfirmPassword)}
+                        className="flex-row items-center w-full bg-white border border-gray-200 rounded-xl px-4 py-3"
+                        onPress={() => {
+                            if (!formData.provinceId) {
+                                Alert.alert('Info', 'Pilih Provinsi terlebih dahulu');
+                                return;
+                            }
+                            setShowRegencySelect(true);
+                        }}
                     >
-                        {showConfirmPassword ? <EyeOff size={20} color="#9CA3AF" /> : <Eye size={20} color="#9CA3AF" />}
+                        <Building size={20} color="#9CA3AF" className="mr-3" />
+                        <Text className={`flex-1 font-plus-jakarta-medium ${formData.regencyId ? 'text-gray-900' : 'text-gray-400'}`}>
+                            {selectedRegencyName}
+                        </Text>
+                        <ChevronDown size={20} color="#9CA3AF" />
                     </TouchableOpacity>
                 </View>
+
+                <View>
+                    <Text className="text-gray-700 mb-2 font-plus-jakarta-bold text-sm">Kata Sandi</Text>
+                    <View className="flex-row items-center w-full bg-white border border-gray-200 rounded-xl px-4 py-3 focus:border-blue-500">
+                        <Lock size={20} color="#9CA3AF" className="mr-3" />
+                        <TextInput
+                            className="flex-1 font-plus-jakarta-medium text-gray-900"
+                            placeholder="Buat kata sandi"
+                            placeholderTextColor="#9CA3AF"
+                            secureTextEntry={!showPassword}
+                            value={formData.password}
+                            onChangeText={(text) => setFormData({...formData, password: text})}
+                        />
+                        <TouchableOpacity onPress={() => setShowPassword(!showPassword)}>
+                            {showPassword ? <EyeOff size={20} color="#9CA3AF" /> : <Eye size={20} color="#9CA3AF" />}
+                        </TouchableOpacity>
+                    </View>
+                </View>
+
+                <View>
+                    <Text className="text-gray-700 mb-2 font-plus-jakarta-bold text-sm">Ulangi Kata Sandi</Text>
+                    <View className="flex-row items-center w-full bg-white border border-gray-200 rounded-xl px-4 py-3 focus:border-blue-500">
+                        <Lock size={20} color="#9CA3AF" className="mr-3" />
+                        <TextInput
+                            className="flex-1 font-plus-jakarta-medium text-gray-900"
+                            placeholder="Ulangi kata sandi"
+                            placeholderTextColor="#9CA3AF"
+                            secureTextEntry={!showConfirmPassword}
+                            value={formData.confirmPassword}
+                            onChangeText={(text) => setFormData({...formData, confirmPassword: text})}
+                        />
+                        <TouchableOpacity onPress={() => setShowConfirmPassword(!showConfirmPassword)}>
+                            {showConfirmPassword ? <EyeOff size={20} color="#9CA3AF" /> : <Eye size={20} color="#9CA3AF" />}
+                        </TouchableOpacity>
+                    </View>
+                </View>
+
+                <TouchableOpacity 
+                    className="flex-row w-full bg-blue-600 rounded-xl py-4 mt-4 shadow-lg shadow-blue-200 justify-center items-center"
+                    onPress={handleRegister}
+                    disabled={isLoading}
+                >
+                    {isLoading ? (
+                        <ActivityIndicator color="white" />
+                    ) : (
+                        <>
+                            <Text className="text-white text-center font-bold font-plus-jakarta-bold text-base mr-2">
+                                Daftar Sekarang
+                            </Text>
+                            <ArrowRight size={20} color="white" />
+                        </>
+                    )}
+                </TouchableOpacity>
+
+                <View className="flex-row justify-center mt-6">
+                    <Text className="text-gray-500 font-plus-jakarta-medium">Sudah memiliki akun? </Text>
+                    <TouchableOpacity onPress={() => router.push('/auth/login')}>
+                        <Text className="text-blue-600 font-bold font-plus-jakarta-bold">Masuk di sini</Text>
+                    </TouchableOpacity>
+                </View>
+
             </View>
-
-            <TouchableOpacity 
-                className="w-full bg-blue-600 rounded-xl py-4 mt-4 shadow-sm shadow-blue-200"
-                onPress={handleRegister}
-                disabled={isLoading}
-            >
-                {isLoading ? (
-                    <ActivityIndicator color="white" />
-                ) : (
-                    <Text className="text-white text-center font-bold font-plus-jakarta-bold text-base">
-                        Daftar Sebagai Korwil
-                    </Text>
-                )}
-            </TouchableOpacity>
-
-        </View>
-      </ScrollView>
+        </ScrollView>
+      </KeyboardAvoidingView>
     </SafeAreaView>
   );
 }
