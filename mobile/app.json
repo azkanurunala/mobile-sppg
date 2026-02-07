@@ -14,7 +14,11 @@
       "backgroundColor": "#ffffff"
     },
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": true,
+      "bundleIdentifier": "com.sppg.mobile",
+      "infoPlist": {
+        "ITSAppUsesNonExemptEncryption": false
+      }
     },
     "android": {
       "adaptiveIcon": {
@@ -33,7 +37,9 @@
       [
         "expo-font",
         {
-          "fonts": ["node_modules/@expo-google-fonts/plus-jakarta-sans/PlusJakartaSans_400Regular.ttf"]
+          "fonts": [
+            "node_modules/@expo-google-fonts/plus-jakarta-sans/PlusJakartaSans_400Regular.ttf"
+          ]
         }
       ],
       [
@@ -47,6 +53,12 @@
     ],
     "experiments": {
       "typedRoutes": true
+    },
+    "extra": {
+      "router": {},
+      "eas": {
+        "projectId": "385ceee0-600a-4462-97f1-4fac0ceb50a5"
+      }
     }
   }
 }

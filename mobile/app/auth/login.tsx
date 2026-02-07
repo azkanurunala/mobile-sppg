@@ -49,8 +49,12 @@ export default function LoginScreen() {
       <SafeAreaView className="flex-1" edges={['top']}>
         {/* Header Section */}
         <View className="items-center justify-center pt-8 pb-10 px-6">
-            <View className="w-24 h-24 bg-white rounded-3xl items-center justify-center mb-6 shadow-lg shadow-black/10">
-                 <Store size={48} color="#2563EB" strokeWidth={1.5} />
+            <View className="w-40 h-40 items-center justify-center mb-6 shadow-lg shadow-black/10 p-2">
+                <Image 
+                    source={require('../../assets/images/logo-bgn.png')} 
+                    className="w-full h-full" 
+                    resizeMode="contain"
+                />
             </View>
             <Text className="text-3xl font-bold text-white font-plus-jakarta-extrabold text-center mb-2">
                 Selamat Datang

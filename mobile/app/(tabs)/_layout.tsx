@@ -33,6 +33,7 @@ export default function TabLayout() {
         name="index"
         options={{
           title: 'Beranda',
+          href: null,
           tabBarIcon: ({ color, size }) => <Home size={size} color={color} />,
         }}
       />

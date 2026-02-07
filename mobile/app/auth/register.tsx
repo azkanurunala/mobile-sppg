@@ -48,7 +48,7 @@ const SelectionModal = ({
                     <View className="flex-row items-center bg-gray-50 border border-gray-200 rounded-lg px-3 py-2">
                         <Search size={20} color="#9CA3AF" className="mr-2" />
                         <TextInput 
-                            className="flex-1 font-plus-jakarta-medium text-gray-900 py-2"
+                            className="flex-1 font-plus-jakarta-medium text-gray-900 py-2 pl-4"
                             placeholder="Cari..."
                             value={searchQuery}
                             onChangeText={setSearchQuery}
@@ -203,7 +203,7 @@ export default function RegisterScreen() {
                 </View>
                 <Text className="text-2xl font-bold text-gray-900 font-plus-jakarta-extrabold mb-2">Daftar Akun</Text>
                 <Text className="text-gray-500 text-center font-plus-jakarta-semibold px-4">
-                    Lengkapi data diri Anda untuk mendaftar layanan SPPG BGN
+                    Lengkapi data diri Anda untuk mendaftar layanan SPPG Mobile
                 </Text>
             </View>
 
@@ -213,7 +213,7 @@ export default function RegisterScreen() {
                     <View className="flex-row items-center w-full bg-white border border-gray-200 rounded-xl px-4 py-2 focus:border-blue-500">
                         <User size={20} color="#9CA3AF" className="mr-3" />
                         <TextInput
-                            className="flex-1 font-plus-jakarta-semibold text-gray-900 py-2"
+                            className="flex-1 font-plus-jakarta-semibold text-gray-900 py-2 pl-4"
                             placeholder="Masukkan nama lengkap Anda"
                             placeholderTextColor="#9CA3AF"
                             value={formData.name}
@@ -227,7 +227,7 @@ export default function RegisterScreen() {
                     <View className="flex-row items-center w-full bg-white border border-gray-200 rounded-xl px-4 py-2 focus:border-blue-500">
                         <User size={20} color="#9CA3AF" className="mr-3" />
                         <TextInput
-                            className="flex-1 font-plus-jakarta-semibold text-gray-900 py-2"
+                            className="flex-1 font-plus-jakarta-semibold text-gray-900 py-2 pl-4"
                             placeholder="Masukkan 16 digit NIK"
                             placeholderTextColor="#9CA3AF"
                             keyboardType="number-pad"
@@ -243,7 +243,7 @@ export default function RegisterScreen() {
                     <View className="flex-row items-center w-full bg-white border border-gray-200 rounded-xl px-4 py-2 focus:border-blue-500">
                         <Phone size={20} color="#9CA3AF" className="mr-3" />
                         <TextInput
-                            className="flex-1 font-plus-jakarta-semibold text-gray-900 py-2"
+                            className="flex-1 font-plus-jakarta-semibold text-gray-900 py-2 pl-4"
                             placeholder="Contoh: 081234567890"
                             placeholderTextColor="#9CA3AF"
                             keyboardType="phone-pad"
@@ -260,7 +260,7 @@ export default function RegisterScreen() {
                         onPress={() => setShowProvinceSelect(true)}
                     >
                         <MapPin size={20} color="#9CA3AF" className="mr-3" />
-                        <Text className={`flex-1 font-plus-jakarta-medium py-2 ${formData.provinceId ? 'text-gray-900' : 'text-gray-400'}`}>
+                        <Text className={`flex-1 font-plus-jakarta-medium py-2 pl-4 ${formData.provinceId ? 'text-gray-900' : 'text-gray-400'}`}>
                             {selectedProvinceName}
                         </Text>
                         <ChevronDown size={20} color="#9CA3AF" />
@@ -280,7 +280,7 @@ export default function RegisterScreen() {
                         }}
                     >
                         <Building size={20} color="#9CA3AF" className="mr-3" />
-                        <Text className={`flex-1 font-plus-jakarta-medium py-2 ${formData.regencyId ? 'text-gray-900' : 'text-gray-400'}`}>
+                        <Text className={`flex-1 font-plus-jakarta-medium py-2 pl-4 ${formData.regencyId ? 'text-gray-900' : 'text-gray-400'}`}>
                             {selectedRegencyName}
                         </Text>
                         <ChevronDown size={20} color="#9CA3AF" />
@@ -292,7 +292,7 @@ export default function RegisterScreen() {
                     <View className="flex-row items-center w-full bg-white border border-gray-200 rounded-xl px-4 py-2 focus:border-blue-500">
                         <Lock size={20} color="#9CA3AF" className="mr-3" />
                         <TextInput
-                            className="flex-1 font-plus-jakarta-medium text-gray-900 py-2"
+                            className="flex-1 font-plus-jakarta-medium text-gray-900 py-2 pl-4"
                             placeholder="Buat kata sandi"
                             placeholderTextColor="#9CA3AF"
                             secureTextEntry={!showPassword}
@@ -310,7 +310,7 @@ export default function RegisterScreen() {
                     <View className="flex-row items-center w-full bg-white border border-gray-200 rounded-xl px-4 py-2 focus:border-blue-500">
                         <Lock size={20} color="#9CA3AF" className="mr-3" />
                         <TextInput
-                            className="flex-1 font-plus-jakarta-medium text-gray-900 py-2"
+                            className="flex-1 font-plus-jakarta-medium text-gray-900 py-2 pl-4"
                             placeholder="Ulangi kata sandi"
                             placeholderTextColor="#9CA3AF"
                             secureTextEntry={!showConfirmPassword}

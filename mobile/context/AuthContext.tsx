@@ -41,7 +41,7 @@ function useProtectedRoute(user: User | null) {
     if (!user && !inAuthGroup) {
       router.replace('/auth/login');
     } else if (user && inAuthGroup) {
-      router.replace('/(tabs)');
+      router.replace('/(tabs)/sppg');
     }
   }, [user, segments, rootNavigationState?.key]);
 }
