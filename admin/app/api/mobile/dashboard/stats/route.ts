@@ -1,7 +1,7 @@
 
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
-import { verifyJwt } from '@/lib/jwt';
+import { verifyJwt, UserPayload } from '@/lib/jwt';
 
 export async function GET(request: Request) {
   try {
@@ -11,13 +11,13 @@ export async function GET(request: Request) {
     
     // Check user role/context
     const authHeader = request.headers.get('authorization');
-    let userId = null;
+    let userId: string | null = null;
     let assignedRegencyId = null;
 
     if (authHeader && authHeader.startsWith('Bearer ')) {
         const token = authHeader.split(' ')[1];
-        const decoded = verifyJwt(token);
-        userId = decoded?.userId;
+        const decoded = verifyJwt(token) as UserPayload | null;
+        userId = decoded?.userId || null;
     }
 
     if (userId) {

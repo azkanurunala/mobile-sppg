@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
-import { verifyJwt } from '@/lib/jwt';
+import { verifyJwt, UserPayload } from '@/lib/jwt';
 
 
 export async function GET(request: Request) {
@@ -28,10 +28,10 @@ export async function GET(request: Request) {
     const authHeader = request.headers.get('authorization');
     if (authHeader && authHeader.startsWith('Bearer ')) {
         const token = authHeader.split(' ')[1];
-        const decoded = verifyJwt(token);
+        const decoded = verifyJwt(token) as UserPayload | null;
         
-        if (decoded && typeof decoded === 'object' && 'userId' in decoded) {
-             const userId = (decoded as any).userId;
+        if (decoded && decoded.userId) {
+             const userId = decoded.userId;
              const user = await prisma.user.findUnique({
                 where: { id: userId },
                 include: { korwilProfile: true }

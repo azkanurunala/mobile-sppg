@@ -30,6 +30,8 @@ export const getApiDocs = async () => {
             email: { type: 'string' },
             phoneNumber: { type: 'string' },
             role: { type: 'string', enum: ['USER', 'KORWIL', 'ADMIN'] },
+            location: { type: 'string', description: 'Assigned region for KORWIL' },
+            nik: { type: 'string', description: 'KTP Number' },
           },
         },
         SPPG: {

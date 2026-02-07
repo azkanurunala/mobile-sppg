@@ -44,24 +44,31 @@ export async function fetchApi(endpoint: string, options: any = {}) {
        const refreshToken = await getRefreshToken();
        if (refreshToken) {
           // Attempt to refresh
-          const refreshRes = await fetch(`${API_URL}/auth/refresh`, {
-             method: 'POST',
-             headers: { 'Content-Type': 'application/json' },
-             body: JSON.stringify({ refreshToken })
-          });
+          try {
+            const refreshRes = await fetch(`${API_URL}/auth/refresh`, {
+               method: 'POST',
+               headers: { 'Content-Type': 'application/json' },
+               body: JSON.stringify({ refreshToken })
+            });
 
-          if (refreshRes.ok) {
-             const { accessToken: newAccess, refreshToken: newRefresh } = await refreshRes.json();
-             await SecureStore.setItemAsync('access_token', newAccess);
-             if (newRefresh) await SecureStore.setItemAsync('refresh_token', newRefresh);
-             
-             // Retry original request
-             return fetchApi(endpoint, { ...options, _retry: true });
-          } else {
-             // Refresh failed -> clear everything
-             await SecureStore.deleteItemAsync('access_token');
-             await SecureStore.deleteItemAsync('refresh_token');
-             await SecureStore.deleteItemAsync('user_data');
+            if (refreshRes.ok) {
+               const data = await refreshRes.json();
+               const newAccess = data.accessToken;
+               const newRefresh = data.refreshToken;
+
+               await SecureStore.setItemAsync('access_token', newAccess);
+               if (newRefresh) await SecureStore.setItemAsync('refresh_token', newRefresh);
+               
+               // Retry original request (re-fetch with updated token)
+               return fetchApi(endpoint, { ...options, _retry: true });
+            } else {
+               // Refresh failed (invalid/expired refreshToken) -> clear everything
+               await SecureStore.deleteItemAsync('access_token');
+               await SecureStore.deleteItemAsync('refresh_token');
+               await SecureStore.deleteItemAsync('user_data');
+            }
+          } catch (e) {
+            console.error('API Refresh Error:', e);
           }
        }
     }

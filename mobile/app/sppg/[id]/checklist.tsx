@@ -13,7 +13,7 @@ interface ChecklistItem {
   name: string;
   description: string;
   weight: number;
-  isCompleted: boolean;
+  isCompleted: boolean | null;
 }
 
 export default function ChecklistScreen() {
@@ -144,21 +144,21 @@ export default function ChecklistScreen() {
 
                 <View className="flex-row space-x-3">
                     <TouchableOpacity 
-                        className={`flex-1 flex-row items-center justify-center py-3 rounded-lg border ${item.isCompleted ? 'bg-green-50 border-green-500' : 'bg-white border-gray-200'}`}
+                        className={`flex-1 flex-row items-center justify-center py-3 rounded-lg border ${item.isCompleted === true ? 'bg-green-50 border-green-500' : 'bg-white border-gray-200'}`}
                         onPress={() => toggleItem(item.masterItemId, true)}
                     >
-                        <CheckCircle size={18} color={item.isCompleted ? '#16A34A' : '#9CA3AF'} />
-                        <Text className={`ml-2 font-bold ${item.isCompleted ? 'text-green-600' : 'text-gray-500'}`}>
+                        <CheckCircle size={18} color={item.isCompleted === true ? '#16A34A' : '#9CA3AF'} />
+                        <Text className={`ml-2 font-bold ${item.isCompleted === true ? 'text-green-600' : 'text-gray-500'}`}>
                             YA
                         </Text>
                     </TouchableOpacity>
 
                     <TouchableOpacity 
-                        className={`flex-1 flex-row items-center justify-center py-3 rounded-lg border ${!item.isCompleted ? 'bg-red-50 border-red-500' : 'bg-white border-gray-200'}`}
+                        className={`flex-1 flex-row items-center justify-center py-3 rounded-lg border ${item.isCompleted === false ? 'bg-red-50 border-red-500' : 'bg-white border-gray-200'}`}
                         onPress={() => toggleItem(item.masterItemId, false)}
                     >
-                         <XCircle size={18} color={!item.isCompleted ? '#EF4444' : '#9CA3AF'} />
-                         <Text className={`ml-2 font-bold ${!item.isCompleted ? 'text-red-600' : 'text-gray-500'}`}>
+                         <XCircle size={18} color={item.isCompleted === false ? '#EF4444' : '#9CA3AF'} />
+                         <Text className={`ml-2 font-bold ${item.isCompleted === false ? 'text-red-600' : 'text-gray-500'}`}>
                             TIDAK
                         </Text>
                     </TouchableOpacity>

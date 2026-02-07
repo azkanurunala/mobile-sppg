@@ -1,7 +1,7 @@
 
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
-import { verifyJwt } from '@/lib/jwt';
+import { verifyJwt, UserPayload } from '@/lib/jwt';
 
 export async function PUT(request: Request) {
   try {
@@ -11,7 +11,7 @@ export async function PUT(request: Request) {
     }
 
     const token = authHeader.split(' ')[1];
-    const decoded = verifyJwt(token);
+    const decoded = verifyJwt(token) as UserPayload | null;
 
     if (!decoded || !decoded.userId) {
       return NextResponse.json({ error: 'Invalid token' }, { status: 401 });

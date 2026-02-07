@@ -1,5 +1,11 @@
 
-import jwt from 'jsonwebtoken';
+import jwt, { JwtPayload } from 'jsonwebtoken';
+
+export interface UserPayload extends JwtPayload {
+  userId: string;
+  email: string;
+  role: string;
+}
 
 const JWT_SECRET = process.env.JWT_SECRET || 'super-secret-key-change-in-prod';
 const REFRESH_SECRET = process.env.REFRESH_TOKEN_SECRET || 'refresh-super-secret-key';
