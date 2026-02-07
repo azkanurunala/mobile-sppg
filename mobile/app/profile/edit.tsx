@@ -96,24 +96,24 @@ export default function EditProfileScreen() {
         <TouchableOpacity onPress={() => router.back()} className="p-2 mr-2">
             <ChevronLeft size={24} color="#1F2937" />
         </TouchableOpacity>
-        <Text className="text-lg font-bold text-gray-900 font-plus-jakarta-bold">Update Data</Text>
+        <Text className="text-lg font-bold text-gray-900 font-plus-jakarta-extrabold">Update Data</Text>
       </View>
 
       <ScrollView className="flex-1 px-6 pt-6">
         <View className="space-y-4">
              <View>
-                <Text className="text-gray-700 mb-2 font-plus-jakarta-medium">Nama Lengkap</Text>
+                <Text className="text-gray-700 mb-2 font-plus-jakarta-semibold">Nama Lengkap</Text>
                 <TextInput
-                    className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 font-plus-jakarta-medium"
+                    className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 font-plus-jakarta-semibold"
                     value={formData.name}
                     onChangeText={(text) => setFormData({...formData, name: text})}
                 />
             </View>
 
              <View>
-                <Text className="text-gray-700 mb-2 font-plus-jakarta-medium">No. Handphone</Text>
+                <Text className="text-gray-700 mb-2 font-plus-jakarta-semibold">No. Handphone</Text>
                 <TextInput
-                    className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 font-plus-jakarta-medium"
+                    className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 font-plus-jakarta-semibold"
                     value={formData.phoneNumber}
                     keyboardType="phone-pad"
                     onChangeText={(text) => setFormData({...formData, phoneNumber: text})}
@@ -123,14 +123,14 @@ export default function EditProfileScreen() {
             {/* Location fields could be added here similar to Register if needed */}
             
             <TouchableOpacity 
-                className="w-full bg-blue-600 rounded-xl py-4 mt-6 shadow-sm shadow-blue-200"
+                className="w-full bg-blue-600 rounded-2xl py-4 mt-6 shadow-sm shadow-blue-200"
                 onPress={handleSave}
                 disabled={loading}
             >
                 {loading ? (
                     <ActivityIndicator color="white" />
                 ) : (
-                    <Text className="text-white text-center font-bold font-plus-jakarta-bold text-base">
+                    <Text className="text-white text-center font-bold font-plus-jakarta-extrabold text-base">
                         Simpan Data
                     </Text>
                 )}

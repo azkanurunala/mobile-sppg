@@ -3,7 +3,7 @@ import React, { createContext, useContext, useEffect, useState } from 'react';
 import * as SecureStore from 'expo-secure-store';
 import { useRouter, useSegments, useRootNavigationState } from 'expo-router';
 
-import { API_URL } from '@/lib/api';
+import { API_URL, registerLogoutCallback } from '@/lib/api';
 
 interface User {
   id: string;
@@ -65,6 +65,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         setIsLoading(false);
       }
     };
+    
+    // Register global logout callback
+    registerLogoutCallback(signOut);
+
+
 
 
     loadUser();

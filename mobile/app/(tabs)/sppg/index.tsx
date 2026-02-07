@@ -143,11 +143,11 @@ export default function SPPGListScreen() {
           {/* Header Card */}
           <View className="flex-row justify-between items-start mb-4">
             <View>
-                 <Text className="text-[10px] text-gray-400 font-bold font-plus-jakarta-bold tracking-widest mb-1">KODE SPPG</Text>
-                 <Text className="text-gray-900 font-bold font-plus-jakarta-bold text-lg">{item.code}</Text>
+                 <Text className="text-[10px] text-gray-400 font-bold font-plus-jakarta-extrabold tracking-widest mb-1">KODE SPPG</Text>
+                 <Text className="text-gray-900 font-bold font-plus-jakarta-extrabold text-lg">{item.code}</Text>
             </View>
             <View className={`${bgClass} px-3 py-1.5 rounded-full`}>
-                <Text className={`${textClass} text-[10px] font-bold font-plus-jakarta-bold`}>{item.status}</Text>
+                <Text className={`${textClass} text-[10px] font-bold font-plus-jakarta-extrabold`}>{item.status}</Text>
             </View>
           </View>
           
@@ -156,18 +156,18 @@ export default function SPPGListScreen() {
               <View className="flex-row items-start">
                   <View className="flex-row items-center w-[25%]">
                       <Building2 size={16} color="#9CA3AF" style={{ marginRight: 8 }} />
-                      <Text className="text-gray-500 text-xs font-plus-jakarta-medium">Investor</Text>
+                      <Text className="text-gray-500 text-xs font-plus-jakarta-semibold">Investor</Text>
                   </View>
-                  <Text className="text-gray-900 text-sm font-plus-jakarta-bold w-[75%]" numberOfLines={1}>
+                  <Text className="text-gray-900 text-sm font-plus-jakarta-extrabold w-[75%]" numberOfLines={1}>
                       {item.investor || '-'}
                   </Text>
               </View>
               <View className="flex-row items-start">
                   <View className="flex-row items-center w-[25%]">
                       <MapPin size={16} color="#9CA3AF" style={{ marginRight: 8 }} />
-                      <Text className="text-gray-500 text-xs font-plus-jakarta-medium">Lokasi</Text>
+                      <Text className="text-gray-500 text-xs font-plus-jakarta-semibold">Lokasi</Text>
                   </View>
-                  <Text className="text-gray-900 text-sm font-plus-jakarta-bold w-[75%]" numberOfLines={1}>
+                  <Text className="text-gray-900 text-sm font-plus-jakarta-extrabold w-[75%]" numberOfLines={1}>
                       {item.locationDetail 
                         ? `Kel. ${item.locationDetail.village}, Kec. ${item.locationDetail.district}, ${item.locationDetail.regency}`
                         : (item.location || '-')}
@@ -179,8 +179,8 @@ export default function SPPGListScreen() {
           {showProgress && (
               <View className="mb-4">
                   <View className="flex-row justify-between mb-1">
-                      <Text className="text-[10px] text-gray-400 font-plus-jakarta-medium">Persentase Persiapan</Text>
-                      <Text className="text-[10px] text-lime-600 font-bold font-plus-jakarta-bold">{item.preparationProgress}%</Text>
+                      <Text className="text-[10px] text-gray-400 font-plus-jakarta-semibold">Persentase Persiapan</Text>
+                      <Text className="text-[10px] text-lime-600 font-bold font-plus-jakarta-extrabold">{item.preparationProgress}%</Text>
                   </View>
                   <View className="h-2 bg-orange-50/50 rounded-full overflow-hidden">
                       <View className="h-full bg-lime-500 rounded-full" style={{ width: `${item.preparationProgress}%` }} />
@@ -190,11 +190,14 @@ export default function SPPGListScreen() {
 
           {/* Action Button (Conditional) */}
           {showActionButton && (
-              <View className="mt-1 bg-blue-600 py-3 rounded-xl items-center shadow-md shadow-blue-200">
-                 <Text className="text-white font-bold text-sm font-plus-jakarta-bold">
+              <TouchableOpacity 
+                className="mt-1 bg-blue-600 py-3 rounded-2xl items-center shadow-md shadow-blue-200"
+                onPress={() => router.push(`/sppg/${item.id}/checklist`)}
+              >
+                 <Text className="text-white font-bold text-sm font-plus-jakarta-extrabold">
                     {item.status.includes('Validasi') ? 'Perbarui Validasi Data' : 'Validasi Data Persiapan'}
                  </Text>
-              </View>
+              </TouchableOpacity>
           )}
         </TouchableOpacity>
       );
@@ -205,7 +208,7 @@ export default function SPPGListScreen() {
         className={`px-5 py-2.5 rounded-full mr-2 ${selectedStatus === item ? 'bg-white shadow-sm' : 'bg-blue-800/30 border border-blue-400/30'}`}
         onPress={() => handleStatusChange(item)}
     >
-        <Text className={`font-bold text-xs font-plus-jakarta-bold ${selectedStatus === item ? 'text-blue-700' : 'text-blue-100'}`}>
+        <Text className={`font-bold text-xs font-plus-jakarta-extrabold ${selectedStatus === item ? 'text-blue-700' : 'text-blue-100'}`}>
             {item}
         </Text>
     </TouchableOpacity>
@@ -216,17 +219,17 @@ export default function SPPGListScreen() {
       <StatusBar style="light" />
       
       {/* Blue Header Container */}
-      <View className="bg-blue-600 pt-12 pb-6 z-10 shadow-lg shadow-blue-900/20">
+      <View className="bg-blue-600 pt-12 pb-4 z-10 shadow-lg shadow-blue-900/20">
         
         {/* Title Row */}
         <View className="flex-row justify-between items-start mb-6 mx-5">
             <View>
                 <View className="flex-row items-center mb-1">
-                    <Text className="text-2xl font-bold text-white font-plus-jakarta-bold">Daftar SPPG</Text>
+                    <Text className="text-2xl font-bold text-white font-plus-jakarta-extrabold">Daftar SPPG</Text>
                 </View>
                 <View className="flex-row items-center ml-1">
                     <MapPin size={12} color="#BFDBFE" className="mr-1" />
-                    <Text className="text-blue-100 text-xs font-plus-jakarta-medium">
+                    <Text className="text-blue-100 text-xs font-plus-jakarta-semibold">
                         {user?.location || 'Lokasi belum diset'}
                     </Text>
                 </View>
@@ -235,17 +238,14 @@ export default function SPPGListScreen() {
                 <TouchableOpacity className="bg-white/20 w-10 h-10 rounded-full items-center justify-center border border-white/10">
                     <SlidersHorizontal size={20} color="white" />
                 </TouchableOpacity>
-                <TouchableOpacity className="bg-white/20 w-10 h-10 rounded-full items-center justify-center border border-white/10">
-                    <Trash2 size={20} color="white" />
-                </TouchableOpacity>
             </View>
         </View>
 
         {/* Search Bar */}
-        <View className="flex-row bg-blue-500/50 border border-blue-400/30 rounded-2xl px-4 py-2 items-center mb-6 mx-5">
+        <View className="flex-row bg-blue-500/50 border border-blue-400/30 rounded-2xl px-4 py-1 items-center mb-4 mx-5">
             <Search size={20} color="#BFDBFE" />
             <TextInput 
-                className="flex-1 ml-3 font-plus-jakarta-medium text-white"
+                className="flex-1 ml-3 font-plus-jakarta-semibold text-white"
                 placeholder="Cari Kode SPPG..."
                 placeholderTextColor="#BFDBFE"
                 value={search}
@@ -268,8 +268,7 @@ export default function SPPGListScreen() {
       </View>
 
       {/* List Content */}
-      <View className="flex-1 px-5 -mt-4">
-          <Text className="text-gray-500 text-xs font-plus-jakarta-medium mb-4 ml-1">Menampilkan hasil pencarian berdasarkan data terbaru</Text>
+      <View className="flex-1 px-5">
           <FlatList 
             data={sppgs}
             renderItem={renderItem}
@@ -281,7 +280,7 @@ export default function SPPGListScreen() {
             onEndReached={loadMore}
             onEndReachedThreshold={0.5}
             ListFooterComponent={loading && !refreshing ? <ActivityIndicator className="mt-4" color="#2563EB" /> : null}
-            ListEmptyComponent={!loading ? <View className="items-center py-10"><Text className="text-gray-400 font-plus-jakarta-medium">Tidak ada data ditemukan</Text></View> : null}
+            ListEmptyComponent={!loading ? <View className="items-center py-10"><Text className="text-gray-400 font-plus-jakarta-semibold">Tidak ada data ditemukan</Text></View> : null}
           />
       </View>
 

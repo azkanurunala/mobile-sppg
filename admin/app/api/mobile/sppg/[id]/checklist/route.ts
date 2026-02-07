@@ -110,10 +110,25 @@ export async function POST(request: Request, context: { params: Promise<{ id: st
             // Let's sum weights of completed ones.
             const totalScore = allProgress.reduce((sum, p) => sum + p.masterItem.weight, 0);
 
-            // Update SPPG
+            // Update SPPG Preparation Percent and Status
+            const currentSPPG = await tx.sPPG.findUnique({
+                where: { id: sppgId },
+                select: { statusId: true }
+            });
+
+            const updateData: any = {
+                preparationPercent: Math.round(totalScore)
+            };
+
+            // If status is less than 4 (Validasi Data Persiapan), upgrade it to 4
+            // Assuming 3 is 'Proses Persiapan' or less
+            if (currentSPPG && (currentSPPG.statusId || 0) < 4) {
+                updateData.statusId = 4;
+            }
+
             await tx.sPPG.update({
                 where: { id: sppgId },
-                data: { preparationPercent: Math.round(totalScore) }
+                data: updateData
             });
         });
 

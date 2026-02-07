@@ -58,17 +58,17 @@ export default function ChangePasswordScreen() {
         <TouchableOpacity onPress={() => router.back()} className="p-2 mr-2">
             <ChevronLeft size={24} color="#1F2937" />
         </TouchableOpacity>
-        <Text className="text-lg font-bold text-gray-900 font-plus-jakarta-bold">Ubah Kata Sandi</Text>
+        <Text className="text-lg font-bold text-gray-900 font-plus-jakarta-extrabold">Ubah Kata Sandi</Text>
       </View>
 
       <ScrollView className="flex-1 px-6 pt-6">
         <View className="space-y-4">
             
             <View>
-                <Text className="text-gray-700 mb-2 font-plus-jakarta-medium">Kata Sandi Saat Ini</Text>
+                <Text className="text-gray-700 mb-2 font-plus-jakarta-semibold">Kata Sandi Saat Ini</Text>
                  <View className="relative">
                     <TextInput
-                        className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 pr-12 font-plus-jakarta-medium"
+                        className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 pr-12 font-plus-jakarta-semibold"
                         placeholder="Masukkan kata sandi lama"
                         secureTextEntry={!showCurrent}
                         value={currentPassword}
@@ -81,10 +81,10 @@ export default function ChangePasswordScreen() {
             </View>
 
             <View>
-                <Text className="text-gray-700 mb-2 font-plus-jakarta-medium">Kata Sandi Baru</Text>
+                <Text className="text-gray-700 mb-2 font-plus-jakarta-semibold">Kata Sandi Baru</Text>
                  <View className="relative">
                     <TextInput
-                        className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 pr-12 font-plus-jakarta-medium"
+                        className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 pr-12 font-plus-jakarta-semibold"
                         placeholder="Masukkan kata sandi baru"
                         secureTextEntry={!showNew}
                         value={newPassword}
@@ -97,10 +97,10 @@ export default function ChangePasswordScreen() {
             </View>
 
             <View>
-                <Text className="text-gray-700 mb-2 font-plus-jakarta-medium">Konfirmasi Kata Sandi Baru</Text>
+                <Text className="text-gray-700 mb-2 font-plus-jakarta-semibold">Konfirmasi Kata Sandi Baru</Text>
                  <View className="relative">
                     <TextInput
-                        className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 pr-12 font-plus-jakarta-medium"
+                        className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 pr-12 font-plus-jakarta-semibold"
                         placeholder="Ulangi kata sandi baru"
                         secureTextEntry={!showConfirm}
                         value={confirmPassword}
@@ -113,14 +113,14 @@ export default function ChangePasswordScreen() {
             </View>
 
             <TouchableOpacity 
-                className="w-full bg-blue-600 rounded-xl py-4 mt-6 shadow-sm shadow-blue-200"
+                className="w-full bg-blue-600 rounded-2xl py-4 mt-6 shadow-sm shadow-blue-200"
                 onPress={handleSave}
                 disabled={loading}
             >
                 {loading ? (
                     <ActivityIndicator color="white" />
                 ) : (
-                    <Text className="text-white text-center font-bold font-plus-jakarta-bold text-base">
+                    <Text className="text-white text-center font-bold font-plus-jakarta-extrabold text-base">
                         Simpan Perubahan
                     </Text>
                 )}

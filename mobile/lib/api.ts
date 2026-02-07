@@ -23,6 +23,12 @@ export async function getRefreshToken() {
   return await SecureStore.getItemAsync('refresh_token');
 }
 
+let onLogout: (() => void) | null = null;
+
+export const registerLogoutCallback = (callback: () => void) => {
+  onLogout = callback;
+};
+
 export async function fetchApi(endpoint: string, options: any = {}) {
   const token = await getAccessToken();
   
@@ -71,10 +77,21 @@ export async function fetchApi(endpoint: string, options: any = {}) {
                await SecureStore.deleteItemAsync('access_token');
                await SecureStore.deleteItemAsync('refresh_token');
                await SecureStore.deleteItemAsync('user_data');
+               
+               // Trigger Global Logout
+               if (onLogout) onLogout();
+               throw { status: 401, message: 'Session Expired' };
             }
           } catch (e) {
             console.error('API Refresh Error:', e);
+            // If network error during refresh, maybe don't logout immediately?
+            // But if it's a persistent error, user is stuck. 
+            // Better to let them re-login.
+             if (onLogout) onLogout();
           }
+       } else {
+           // No refresh token available, but got 401 -> Logout
+           if (onLogout) onLogout();
        }
     }
 

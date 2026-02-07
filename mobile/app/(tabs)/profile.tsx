@@ -54,12 +54,12 @@ export default function ProfileScreen() {
       
       {/* Blue Header Background */}
       <View className="bg-blue-600 pb-8 pt-12 px-6 items-center shadow-lg shadow-blue-900/20">
-          <Text className="text-white font-bold text-xl font-plus-jakarta-bold self-start mb-6">Profil Saya</Text>
+          <Text className="text-white font-bold text-xl font-plus-jakarta-extrabold self-start mb-6">Profil Saya</Text>
           
           {/* Profile Card */}
           <View className="items-center relative mb-4">
               <View className="w-28 h-28 bg-white rounded-3xl items-center justify-center shadow-lg shadow-blue-800/30">
-                  <Text className="text-blue-600 text-4xl font-bold font-plus-jakarta-bold">
+                  <Text className="text-blue-600 text-4xl font-bold font-plus-jakarta-extrabold">
                     {getInitials(user?.name || 'User')}
                   </Text>
               </View>
@@ -68,27 +68,27 @@ export default function ProfileScreen() {
               </TouchableOpacity>
           </View>
           
-          <Text className="text-white text-xl font-bold font-plus-jakarta-bold mt-2 text-center">
-            {user?.name || 'Nama Pengguna'}
+          <Text className="text-white text-xl font-bold font-plus-jakarta-extrabold mt-2 text-center">
+            {user?.name || 'Pengguna belum login'}
           </Text>
           
           <View className="flex-row items-center mt-2 opacity-90">
              <Phone size={14} color="white" className="mr-3" />
-             <Text className="text-white font-medium font-plus-jakarta-medium text-sm">
-                +62 {user?.phone || '812-3456-7890'}
+             <Text className="text-white font-medium font-plus-jakarta-semibold text-sm ml-2">
+                {user?.phoneNumber || 'Tidak ada nomor telepon'}
              </Text>
           </View>
 
           <View className="flex-row items-start mt-1 opacity-90">
-             <MapPin size={14} color="white" className="mr-2 mt-0.5" />
-             <Text className="text-white font-medium font-plus-jakarta-medium text-sm text-center max-w-[250px]">
-                {user?.location || 'Kab. Maluku Tengah, Maluku'}
+             <MapPin size={14} color="white" className="mr-2" />
+             <Text className="text-white font-medium font-plus-jakarta-semibold text-sm text-center max-w-[250px] ml-2">
+                {user?.location || 'Tidak ada lokasi'}
              </Text>
           </View>
       </View>
 
       <ScrollView className="flex-1 px-6 pt-6">
-          <Text className="text-gray-500 font-bold font-plus-jakarta-bold mb-4 text-xs uppercase tracking-wider">Akun</Text>
+          <Text className="text-gray-500 font-bold font-plus-jakarta-extrabold mb-4 text-xs uppercase tracking-wider">Akun</Text>
           <View className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden mb-6">
               <TouchableOpacity 
                 className="flex-row items-center justify-between p-4"
@@ -99,7 +99,7 @@ export default function ProfileScreen() {
                           <User size={20} color="#2563EB" />
                       </View>
                       <View>
-                          <Text className="text-gray-900 font-bold text-sm font-plus-jakarta-bold">Update Data Diri</Text>
+                          <Text className="text-gray-900 font-bold text-sm font-plus-jakarta-extrabold">Update Data Diri</Text>
                           <Text className="text-gray-500 text-xs mt-0.5">Perbarui nama, telepon, dan lokasi</Text>
                       </View>
                   </View>
@@ -107,7 +107,7 @@ export default function ProfileScreen() {
               </TouchableOpacity>
           </View>
 
-          <Text className="text-gray-500 font-bold font-plus-jakarta-bold mb-4 text-xs uppercase tracking-wider">Keamanan</Text>
+          <Text className="text-gray-500 font-bold font-plus-jakarta-extrabold mb-4 text-xs uppercase tracking-wider">Keamanan</Text>
           
           <View className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden mb-6">
               {/* Biometric Toggle */}
@@ -117,7 +117,7 @@ export default function ProfileScreen() {
                           <ShieldCheck size={20} color="#9333EA" />
                       </View>
                       <View>
-                          <Text className="text-gray-900 font-bold text-sm font-plus-jakarta-bold">Login dengan Biometrik</Text>
+                          <Text className="text-gray-900 font-bold text-sm font-plus-jakarta-extrabold">Login dengan Biometrik</Text>
                           <Text className="text-gray-500 text-xs mt-0.5">Aktifkan keamanan biometrik</Text>
                       </View>
                   </View>
@@ -134,7 +134,7 @@ export default function ProfileScreen() {
                           <Lock size={20} color="#0D9488" />
                       </View>
                       <View>
-                          <Text className="text-gray-900 font-bold text-sm font-plus-jakarta-bold">Ubah Kata Sandi</Text>
+                          <Text className="text-gray-900 font-bold text-sm font-plus-jakarta-extrabold">Ubah Kata Sandi</Text>
                           <Text className="text-gray-500 text-xs mt-0.5">Perbarui kata sandi Anda</Text>
                       </View>
                   </View>
@@ -142,7 +142,7 @@ export default function ProfileScreen() {
               </TouchableOpacity>
           </View>
 
-          <Text className="text-center text-gray-400 text-xs font-plus-jakarta-medium mb-6">SPPG BGN Versi 1.0.0</Text>
+          <Text className="text-center text-gray-400 text-xs font-plus-jakarta-semibold mb-6">SPPG Mobile Versi 1.0.0</Text>
 
           {/* Logout Button */}
           <View className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden mb-10">
@@ -155,7 +155,7 @@ export default function ProfileScreen() {
                         <LogOut size={20} color="#DC2626" />
                     </View>
                      <View>
-                          <Text className="text-red-600 font-bold text-sm font-plus-jakarta-bold">Keluar</Text>
+                          <Text className="text-red-600 font-bold text-sm font-plus-jakarta-extrabold">Keluar</Text>
                           <Text className="text-red-400 text-xs mt-0.5">Keluar dari akun Anda</Text>
                       </View>
                 </View>

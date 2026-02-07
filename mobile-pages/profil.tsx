@@ -113,7 +113,7 @@ export function Profil() {
               </button>
             </div>
             <div className="mt-4 text-center">
-              <p className="text-xs text-muted-foreground mb-8">SPPG BGN Versi 1.0.0</p>
+              <p className="text-xs text-muted-foreground mb-8">SPPG Mobile Versi 1.0.0</p>
             </div>
             <button className="flex items-center gap-4 bg-card p-4 rounded-2xl shadow-sm border border-border active:shadow-md active:scale-[0.99] transition-all">
               <div className="size-11 bg-gradient-to-br from-red-500 to-red-600 text-white rounded-xl flex items-center justify-center shadow-md">

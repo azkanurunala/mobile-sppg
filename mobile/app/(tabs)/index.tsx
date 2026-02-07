@@ -109,20 +109,20 @@ export default function DashboardScreen() {
       </View>
 
       {/* 5. TYPOGRAPHY: Title 14px SemiBold */}
-      <Text className="text-gray-800 text-sm font-plus-jakarta-semibold mb-2 leading-tight">
+      <Text className="text-gray-500 text-sm font-plus-jakarta-bold mb-2 leading-tight">
         {title}
       </Text>
 
       {/* 5. TYPOGRAPHY: Stats 24px+ Bold */}
-      <Text className="text-3xl font-plus-jakarta-bold text-gray-900 mb-4">
+      <Text className="text-3xl font-plus-jakarta-extrabold text-gray-900 mb-4">
         {count}
       </Text>
       
       {/* 4. PROGRESS BARS: Slim (6px), Track #F3F4F6 */}
       <View>
           <View className="flex-row justify-between mb-1.5">
-               <Text className="text-[10px] text-gray-400 font-plus-jakarta-medium">Persentase</Text>
-               <Text className="text-[10px] text-gray-400 font-plus-jakarta-medium">{getPercentage(count)}%</Text>
+               <Text className="text-[10px] text-gray-400 font-plus-jakarta-semibold">Persentase</Text>
+               <Text className="text-[10px] text-gray-400 font-plus-jakarta-semibold">{getPercentage(count)}%</Text>
           </View>
           <View className="h-1.5 w-full bg-[#F3F4F6] rounded-full overflow-hidden">
              <View 
@@ -153,13 +153,13 @@ export default function DashboardScreen() {
             <View className="px-6 pt-14 pb-0 mb-4">
                 <View className="flex-row items-center">
                     <View className="w-12 h-12 bg-white/20 rounded-full items-center justify-center border-2 border-white/30 mr-3">
-                        <Text className="text-white font-plus-jakarta-bold text-lg">{user?.name?.substring(0,2).toUpperCase()}</Text>
+                        <Text className="text-white font-plus-jakarta-extrabold text-lg">{user?.name?.substring(0,2).toUpperCase()}</Text>
                     </View>
                     <View>
-                        <Text className="text-white font-plus-jakarta-bold text-xl">{user?.name}</Text>
+                        <Text className="text-white font-plus-jakarta-extrabold text-xl">{user?.name}</Text>
                         <View className="flex-row items-center mt-0.5">
                             <MapPin size={12} color="#BFDBFE" className="mr-1" />
-                            <Text className="text-blue-100 text-xs font-plus-jakarta-medium">{user?.location || 'Lokasi belum diset'}</Text>
+                            <Text className="text-blue-100 text-xs font-plus-jakarta-semibold">{user?.location || 'Lokasi belum diset'}</Text>
                         </View>
                     </View>
                 </View>
@@ -171,23 +171,23 @@ export default function DashboardScreen() {
                 style={SOFT_SHADOW}
             >
                 <View>
-                    <Text className="text-gray-500 text-xs font-plus-jakarta-bold mb-1">Total SPPG Terdaftar</Text>
+                    <Text className="text-gray-500 text-xs font-plus-jakarta-extrabold mb-1">Total SPPG Terdaftar</Text>
                     {/* Big Number Typography */}
-                    <Text className="text-[40px] font-plus-jakarta-bold text-gray-900 leading-tight">
+                    <Text className="text-[40px] font-plus-jakarta-extrabold text-gray-900 leading-tight">
                         {stats?.totalSPPG || 0}
                     </Text>
                 </View>
                 <View className="bg-[#ECFDF5] px-3 py-1.5 rounded-full flex-row items-center border border-[#D1FAE5]">
                     <TrendingUp size={14} color="#10B981" className="mr-1" />
-                    <Text className="text-[#059669] font-plus-jakarta-bold text-xs">+12%</Text>
+                    <Text className="text-[#059669] font-plus-jakarta-extrabold text-xs">+12%</Text>
                 </View>
             </View>
 
             {/* Section Title */}
             <View className="px-6 mb-4 flex-row justify-between items-end">
-                <Text className="text-lg font-plus-jakarta-bold text-gray-900">Status SPPG</Text>
+                <Text className="text-lg font-plus-jakarta-extrabold text-gray-900">Status SPPG</Text>
                 <TouchableOpacity className="flex-row items-center">
-                    <Text className="text-[#356DF1] font-plus-jakarta-bold text-sm mr-1">Detail</Text>
+                    <Text className="text-[#356DF1] font-plus-jakarta-extrabold text-sm mr-1">Detail</Text>
                     <ArrowRight size={16} color="#356DF1" />
                 </TouchableOpacity>
             </View>
@@ -203,24 +203,24 @@ export default function DashboardScreen() {
                         <ClipboardCheck size={28} color="white" />
                     </View>
                     <View className="flex-1 pt-1">
-                        <Text className="text-blue-100 font-plus-jakarta-semibold text-sm mb-1">Validasi Data Persiapan</Text>
+                        <Text className="text-blue-100 font-plus-jakarta-bold text-sm mb-1">Validasi Data Persiapan</Text>
                         <View className="flex-row items-baseline">
-                            <Text className="text-[42px] font-plus-jakarta-bold text-white mr-2 leading-tight">
-                                {stats?.summary.prosesPersiapan || 0}
+                            <Text className="text-[42px] font-plus-jakarta-extrabold text-white mr-2 leading-tight">
+                                {stats?.summary.validasiData || 0}
                             </Text>
-                            <Text className="text-blue-200 font-plus-jakarta-medium text-lg">SPPG</Text>
+                            <Text className="text-blue-200 font-plus-jakarta-semibold text-lg">SPPG</Text>
                         </View>
                     </View>
                  </View>
 
                  <View className="relative z-10 pb-6">
                     <View className="flex-row justify-between mb-2">
-                        <Text className="text-blue-100 text-xs font-plus-jakarta-medium">Persentase dari Total</Text>
-                        <Text className="text-white text-xs font-plus-jakarta-bold">{getPercentage(stats?.summary.prosesPersiapan || 0)}%</Text>
+                        <Text className="text-blue-100 text-xs font-plus-jakarta-semibold">Persentase dari Total</Text>
+                        <Text className="text-white text-xs font-plus-jakarta-extrabold">{getPercentage(stats?.summary.validasiData || 0)}%</Text>
                     </View>
                     {/* Progress Bar inside Hero Card */}
                     <View className="h-2 bg-black/20 rounded-full overflow-hidden">
-                        <View className="h-full bg-white rounded-full" style={{ width: `${getPercentage(stats?.summary.prosesPersiapan || 0)}%` }} />
+                        <View className="h-full bg-white rounded-full" style={{ width: `${getPercentage(stats?.summary.validasiData || 0)}%` }} />
                     </View>
                  </View>
             </View>
@@ -232,12 +232,12 @@ export default function DashboardScreen() {
             >
                 <View className="flex-row justify-between items-start mb-6">
                     <View className="flex-1 mr-4">
-                        <Text className="text-gray-900 font-plus-jakarta-bold text-lg mb-1">Progres Persiapan</Text>
-                        <Text className="text-gray-400 text-xs font-plus-jakarta-medium">Rata-rata seluruh wilayah</Text>
+                        <Text className="text-gray-900 font-plus-jakarta-extrabold text-lg mb-1">Progres Persiapan</Text>
+                        <Text className="text-gray-400 text-xs font-plus-jakarta-semibold">Rata-rata seluruh wilayah</Text>
                     </View>
                     {/* Circular Progress Indicator (Simulated) */}
                     <View className="w-14 h-14 rounded-full border-[4px] border-[#EFF6FF] items-center justify-center bg-white relative">
-                         <Text className="text-[#356DF1] font-plus-jakarta-bold text-sm">{stats?.averageProgress || 0}%</Text>
+                         <Text className="text-[#356DF1] font-plus-jakarta-extrabold text-sm">{stats?.averageProgress || 0}%</Text>
                     </View>
                 </View>
                 
@@ -247,8 +247,8 @@ export default function DashboardScreen() {
                 </View>
                 
                 <View className="flex-row justify-between pt-2 border-t border-gray-50">
-                    <Text className="text-gray-400 text-[10px] font-plus-jakarta-medium">Target: 100%</Text>
-                    <Text className="text-gray-400 text-[10px] font-plus-jakarta-medium">Deadline: 30 Jun 2024</Text>
+                    <Text className="text-gray-400 text-[10px] font-plus-jakarta-semibold">Target: 100%</Text>
+                    <Text className="text-gray-400 text-[10px] font-plus-jakarta-semibold">Deadline: 30 Jun 2024</Text>
                 </View>
             </View>
 

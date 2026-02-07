@@ -65,41 +65,9 @@ export default function SPPGDetailScreen() {
     }, [id])
   );
 
-  const toggleItem = (masterItemId: string, status: boolean) => {
-    setChecklistItems(prevItems => 
-        prevItems.map(item => 
-            item.masterItemId === masterItemId 
-                ? { ...item, isCompleted: status } 
-                : item
-        )
-    );
-  };
 
-  const handleSaveChecklist = async () => {
-    setSaving(true);
-    try {
-        await fetchApi(`/sppg/${id}/checklist`, {
-            method: 'POST',
-            body: JSON.stringify({
-                items: checklistItems.map(i => ({
-                    masterItemId: i.masterItemId,
-                    isCompleted: i.isCompleted
-                }))
-            })
-        });
-        
-        // Refetch to get updated summary/calculation from server
-        const checklistRes = await fetchApi(`/sppg/${id}/checklist`);
-        setChecklistItems(checklistRes.checklist);
-        setChecklistSummary(checklistRes.summary);
-        
-        Alert.alert('Sukses', 'Data validasi berhasil disimpan');
-    } catch (error: any) {
-        Alert.alert('Gagal', error.message || 'Gagal menyimpan data');
-    } finally {
-        setSaving(false);
-    }
-  };
+
+
 
   const copyToClipboard = async (text: string) => {
     await Clipboard.setStringAsync(text);
@@ -135,18 +103,19 @@ export default function SPPGDetailScreen() {
       <ScrollView className="flex-1" contentContainerStyle={{ paddingBottom: 180 }}>
         
         {/* Blue Header Background */}
-        <View className="bg-blue-600 pb-24 pt-12 px-5 rounded-b-[40px] relative">
+        <View className="bg-blue-600 pb-24 pt-12 px-5 relative">
             {/* Nav Bar */}
             <View className="flex-row items-center justify-between mb-6">
                 <TouchableOpacity onPress={() => router.back()} className="w-10 h-10 bg-white/20 rounded-full items-center justify-center border border-white/10">
                     <ChevronLeft size={24} color="white" />
                 </TouchableOpacity>
                 <View className="bg-white/20 px-4 py-1.5 rounded-full border border-white/10">
-                    <Text className="text-white text-xs font-bold font-plus-jakarta-bold">{detail.status}</Text>
+                    <Text className="text-white text-xs font-bold font-plus-jakarta-extrabold">{detail.status}</Text>
                 </View>
             </View>
             
-            <Text className="text-white text-2xl font-bold font-plus-jakarta-bold mb-4">{detail.code}</Text>
+            <Text className="text-white text-2xl font-bold font-plus-jakarta-extrabold mb-4">SPPG {detail.code}</Text>
+            <Text className="text-white text-2xl font-bold font-plus-jakarta-extrabold mb-4">{detail.location?.village+', ' || detail.snapshot?.village+', ' || ''}</Text>
         </View>
 
         {/* Floating Info Card */}
@@ -156,27 +125,27 @@ export default function SPPGDetailScreen() {
                     <View>
                         <View className="flex-row items-center mb-1">
                             <MapPin size={12} color="#9CA3AF" className="mr-1" />
-                            <Text className="text-gray-400 text-[10px] font-bold font-plus-jakarta-bold uppercase">Provinsi</Text>
+                            <Text className="text-gray-400 text-[10px] font-bold font-plus-jakarta-extrabold uppercase">Provinsi</Text>
                         </View>
-                        <Text className="text-gray-900 font-bold font-plus-jakarta-bold text-sm">
+                        <Text className="text-gray-900 font-bold font-plus-jakarta-extrabold text-sm">
                             {detail.location?.province || detail.snapshot?.province || '-'}
                         </Text>
                     </View>
                     <View>
                          <View className="flex-row items-center mb-1">
                             <MapPin size={12} color="#9CA3AF" className="mr-1" />
-                            <Text className="text-gray-400 text-[10px] font-bold font-plus-jakarta-bold uppercase">Kecamatan</Text>
+                            <Text className="text-gray-400 text-[10px] font-bold font-plus-jakarta-extrabold uppercase">Kecamatan</Text>
                         </View>
-                        <Text className="text-gray-900 font-bold font-plus-jakarta-bold text-sm">
+                        <Text className="text-gray-900 font-bold font-plus-jakarta-extrabold text-sm">
                              {detail.location?.district || detail.snapshot?.district || '-'}
                         </Text>
                     </View>
                      <View>
                         <View className="flex-row items-center mb-1">
                             <FileText size={12} color="#9CA3AF" className="mr-1" />
-                            <Text className="text-gray-400 text-[10px] font-bold font-plus-jakarta-bold uppercase">Kode Pos</Text>
+                            <Text className="text-gray-400 text-[10px] font-bold font-plus-jakarta-extrabold uppercase">Kode Pos</Text>
                         </View>
-                        <Text className="text-gray-900 font-bold font-plus-jakarta-bold text-sm">
+                        <Text className="text-gray-900 font-bold font-plus-jakarta-extrabold text-sm">
                              {detail.postalCode || '97511'}
                         </Text>
                     </View>
@@ -186,18 +155,18 @@ export default function SPPGDetailScreen() {
                      <View>
                         <View className="flex-row items-center mb-1">
                             <Building2 size={12} color="#9CA3AF" className="mr-1" />
-                            <Text className="text-gray-400 text-[10px] font-bold font-plus-jakarta-bold uppercase">Kab/Kota</Text>
+                            <Text className="text-gray-400 text-[10px] font-bold font-plus-jakarta-extrabold uppercase">Kab/Kota</Text>
                         </View>
-                        <Text className="text-gray-900 font-bold font-plus-jakarta-bold text-sm">
+                        <Text className="text-gray-900 font-bold font-plus-jakarta-extrabold text-sm">
                              {detail.location?.regency || detail.snapshot?.regency || '-'}
                         </Text>
                     </View>
                     <View>
                         <View className="flex-row items-center mb-1">
                             <MapPin size={12} color="#9CA3AF" className="mr-1" />
-                            <Text className="text-gray-400 text-[10px] font-bold font-plus-jakarta-bold uppercase">Desa</Text>
+                            <Text className="text-gray-400 text-[10px] font-bold font-plus-jakarta-extrabold uppercase">Desa</Text>
                         </View>
-                        <Text className="text-gray-900 font-bold font-plus-jakarta-bold text-sm">
+                        <Text className="text-gray-900 font-bold font-plus-jakarta-extrabold text-sm">
                              {detail.location?.village || detail.snapshot?.village || '-'}
                         </Text>
                     </View>
@@ -207,19 +176,19 @@ export default function SPPGDetailScreen() {
             {/* Geo Coordinates */}
             <View className="bg-gray-50 rounded-2xl p-4 flex-row justify-between items-center">
                 <View>
-                    <Text className="text-gray-400 text-[10px] font-bold font-plus-jakarta-bold uppercase mb-2">Koordinat Geografis</Text>
+                    <Text className="text-gray-400 text-[10px] font-bold font-plus-jakarta-extrabold uppercase mb-2">Koordinat Geografis</Text>
                     <View className="flex-row space-x-6">
                         <View>
                             <Text className="text-gray-400 text-[10px] font-bold mb-0.5">LAT</Text>
-                            <Text className="text-gray-900 font-bold text-sm font-plus-jakarta-bold">{detail.latitude || '-3.321456'}</Text>
+                            <Text className="text-gray-900 font-bold text-sm font-plus-jakarta-extrabold">{detail.latitude || '-3.321456'}</Text>
                         </View>
                         <View>
                             <Text className="text-gray-400 text-[10px] font-bold mb-0.5">LONG</Text>
-                            <Text className="text-gray-900 font-bold text-sm font-plus-jakarta-bold">{detail.longitude || '128.987654'}</Text>
+                            <Text className="text-gray-900 font-bold text-sm font-plus-jakarta-extrabold">{detail.longitude || '128.987654'}</Text>
                         </View>
                     </View>
                 </View>
-                <TouchableOpacity className="w-12 h-12 bg-blue-600 rounded-xl items-center justify-center shadow-md shadow-blue-300">
+                <TouchableOpacity className="w-12 h-12 bg-blue-600 rounded-2xl items-center justify-center shadow-md shadow-blue-300">
                     <MapIcon size={24} color="white" fill="white" />
                 </TouchableOpacity>
             </View>
@@ -231,13 +200,13 @@ export default function SPPGDetailScreen() {
                 className={`flex-1 py-3 rounded-full items-center ${activeTab === 'checklist' ? 'bg-orange-500 shadow-md' : 'bg-transparent'}`}
                 onPress={() => setActiveTab('checklist')}
             >
-                <Text className={`font-bold font-plus-jakarta-bold ${activeTab === 'checklist' ? 'text-white' : 'text-gray-400'}`}>Checklist</Text>
+                <Text className={`font-bold font-plus-jakarta-extrabold ${activeTab === 'checklist' ? 'text-white' : 'text-gray-400'}`}>Checklist</Text>
             </TouchableOpacity>
             <TouchableOpacity 
                 className={`flex-1 py-3 rounded-full items-center ${activeTab === 'investor' ? 'bg-orange-500 shadow-md' : 'bg-transparent'}`}
                 onPress={() => setActiveTab('investor')}
             >
-                <Text className={`font-bold font-plus-jakarta-bold ${activeTab === 'investor' ? 'text-white' : 'text-gray-400'}`}>Investor</Text>
+                <Text className={`font-bold font-plus-jakarta-extrabold ${activeTab === 'investor' ? 'text-white' : 'text-gray-400'}`}>Investor</Text>
             </TouchableOpacity>
         </View>
 
@@ -249,21 +218,19 @@ export default function SPPGDetailScreen() {
                         <View className="w-10 h-10 bg-blue-50 rounded-full items-center justify-center mr-3">
                             <ListChecks size={20} color="#2563EB" />
                         </View>
-                        <Text className="text-xl font-bold text-gray-900 font-plus-jakarta-bold">Checklist Persiapan</Text>
+                        <Text className="text-xl font-bold text-gray-900 font-plus-jakarta-extrabold">Checklist Persiapan</Text>
                     </View>
                     
                     <View className="space-y-4">
                         {checklistItems.map((item) => (
                              <View key={item.masterItemId} className="bg-gray-50 p-4 rounded-xl flex-row items-center justify-between">
                                 <View className="flex-row items-center flex-1 mr-2">
-                                    <TouchableOpacity onPress={() => toggleItem(item.masterItemId, !item.isCompleted)}>
-                                        <StatusIcon isCompleted={item.isCompleted} />
-                                    </TouchableOpacity>
-                                    <Text className="text-gray-900 font-bold font-plus-jakarta-bold text-sm ml-3 flex-1">
+                                    <StatusIcon isCompleted={item.isCompleted} />
+                                    <Text className="text-gray-900 font-bold font-plus-jakarta-extrabold text-sm ml-3 flex-1">
                                         {item.name}
                                     </Text>
                                 </View>
-                                <Text className="text-gray-900 font-bold font-plus-jakarta-bold text-sm">{item.weight}%</Text>
+                                <Text className="text-gray-900 font-bold font-plus-jakarta-extrabold text-sm">{item.weight}%</Text>
                              </View>
                         ))}
                     </View>
@@ -274,7 +241,7 @@ export default function SPPGDetailScreen() {
                         <View className="w-10 h-10 bg-blue-50 rounded-full items-center justify-center mr-3">
                             <Briefcase size={20} color="#2563EB" />
                         </View>
-                        <Text className="text-xl font-bold text-gray-900 font-plus-jakarta-bold">Investor Terkait</Text>
+                        <Text className="text-xl font-bold text-gray-900 font-plus-jakarta-extrabold">Investor Terkait</Text>
                    </View>
 
                    {detail.investor ? (
@@ -286,7 +253,7 @@ export default function SPPGDetailScreen() {
                                 </View>
                                 <View>
                                     <Text className="text-gray-400 text-xs font-bold mb-1">Nama Perusahaan</Text>
-                                    <Text className="text-gray-900 font-bold text-lg font-plus-jakarta-bold w-48">{detail.investor.name}</Text>
+                                    <Text className="text-gray-900 font-bold text-lg font-plus-jakarta-extrabold w-48">{detail.investor.name}</Text>
                                 </View>
                              </View>
 
@@ -297,7 +264,7 @@ export default function SPPGDetailScreen() {
                                         <Mail size={18} color="#6B7280" className="mr-3" />
                                         <View>
                                             <Text className="text-gray-400 text-[10px] font-bold mb-0.5">Email Kontak</Text>
-                                            <Text className="text-gray-900 font-bold text-sm font-plus-jakarta-bold">{detail.investor.email || '-'}</Text>
+                                            <Text className="text-gray-900 font-bold text-sm font-plus-jakarta-extrabold">{detail.investor.email || '-'}</Text>
                                         </View>
                                     </View>
                                     <TouchableOpacity 
@@ -313,7 +280,7 @@ export default function SPPGDetailScreen() {
                                         <Building2 size={18} color="#6B7280" className="mr-3" />
                                         <View>
                                             <Text className="text-gray-400 text-[10px] font-bold mb-0.5">Kode Investor</Text>
-                                            <Text className="text-gray-900 font-bold text-sm font-plus-jakarta-bold">{detail.investor.code || '-'}</Text>
+                                            <Text className="text-gray-900 font-bold text-sm font-plus-jakarta-extrabold">{detail.investor.code || '-'}</Text>
                                         </View>
                                     </View>
                                     <TouchableOpacity 
@@ -327,7 +294,7 @@ export default function SPPGDetailScreen() {
                         </>
                    ) : (
                        <View className="items-center justify-center py-10">
-                           <Text className="text-gray-400 font-plus-jakarta-medium">Belum ada investor terkait</Text>
+                           <Text className="text-gray-400 font-plus-jakarta-semibold">Belum ada investor terkait</Text>
                        </View>
                    )}
                 </>
@@ -339,8 +306,8 @@ export default function SPPGDetailScreen() {
       {/* Sticky Bottom Footer (Only for Checklist Tab for now based on design) */}
       <View className="absolute bottom-0 left-0 right-0 bg-white pt-4 pb-8 px-6 border-t border-gray-100 shadow-lg">
           <View className="flex-row justify-between items-end mb-2">
-              <Text className="text-gray-500 text-xs font-plus-jakarta-bold">Progress Persiapan</Text>
-              <Text className="text-gray-900 font-bold text-xl font-plus-jakarta-bold">{percentage}%</Text>
+              <Text className="text-gray-500 text-xs font-plus-jakarta-extrabold">Progress Persiapan</Text>
+              <Text className="text-gray-900 font-bold text-xl font-plus-jakarta-extrabold">{percentage}%</Text>
           </View>
           <View className="h-3 bg-gray-100 rounded-full mb-6 overflow-hidden">
              <View className="h-full bg-lime-500 rounded-full" style={{ width: `${percentage}%` }} />
@@ -348,7 +315,7 @@ export default function SPPGDetailScreen() {
           
           <TouchableOpacity 
             className="w-full bg-blue-600 py-4 rounded-2xl flex-row items-center justify-center shadow-lg shadow-blue-200"
-            onPress={handleSaveChecklist}
+            onPress={() => router.push(`/sppg/${id}/checklist`)}
             disabled={saving}
           >
              {saving ? (
@@ -358,7 +325,7 @@ export default function SPPGDetailScreen() {
                     <View className="bg-white rounded-full p-1 mr-2">
                         <CheckCircle size={16} color="#2563EB" />
                     </View>
-                    <Text className="text-white font-bold text-base font-plus-jakarta-bold">Validasi Data Persiapan</Text>
+                    <Text className="text-white font-bold text-base font-plus-jakarta-extrabold">Validasi Data Persiapan</Text>
                  </>
              )}
           </TouchableOpacity>

@@ -100,9 +100,9 @@ export default function RegisterScreen() {
         <View className="absolute top-0 bottom-0 left-0 right-0 bg-black/50 z-50 justify-center px-6 py-20">
             <View className="bg-white rounded-xl p-4 flex-1">
                 <View className="flex-row justify-between items-center mb-4 border-b border-gray-100 pb-2">
-                    <Text className="font-bold text-lg font-plus-jakarta-bold">{title}</Text>
+                    <Text className="font-bold text-lg font-plus-jakarta-extrabold">{title}</Text>
                     <TouchableOpacity onPress={onClose}>
-                        <Text className="text-blue-600 font-plus-jakarta-bold">Tutup</Text>
+                        <Text className="text-blue-600 font-plus-jakarta-extrabold">Tutup</Text>
                     </TouchableOpacity>
                 </View>
                 <ScrollView>
@@ -115,7 +115,7 @@ export default function RegisterScreen() {
                                 onClose();
                             }}
                         >
-                            <Text className="text-gray-800 font-plus-jakarta-medium">{item.name}</Text>
+                            <Text className="text-gray-800 font-plus-jakarta-semibold">{item.name}</Text>
                         </TouchableOpacity>
                     ))}
                 </ScrollView>
@@ -144,8 +144,8 @@ export default function RegisterScreen() {
                 <View className="w-20 h-20 bg-blue-600 rounded-2xl items-center justify-center mb-4 shadow-lg shadow-blue-200">
                     <UserPlus size={40} color="white" />
                 </View>
-                <Text className="text-2xl font-bold text-gray-900 font-plus-jakarta-bold mb-2">Daftar Akun</Text>
-                <Text className="text-gray-500 text-center font-plus-jakarta-medium px-4">
+                <Text className="text-2xl font-bold text-gray-900 font-plus-jakarta-extrabold mb-2">Daftar Akun</Text>
+                <Text className="text-gray-500 text-center font-plus-jakarta-semibold px-4">
                     Lengkapi data diri Anda untuk mendaftar layanan SPPG BGN
                 </Text>
             </View>
@@ -153,11 +153,11 @@ export default function RegisterScreen() {
             <View className="space-y-4">
                 
                 <View>
-                    <Text className="text-gray-700 mb-2 font-plus-jakarta-bold text-sm">Nama Lengkap</Text>
+                    <Text className="text-gray-700 mb-2 font-plus-jakarta-extrabold text-sm">Nama Lengkap</Text>
                     <View className="flex-row items-center w-full bg-white border border-gray-200 rounded-xl px-4 py-3 focus:border-blue-500">
                         <User size={20} color="#9CA3AF" className="mr-3" />
                         <TextInput
-                            className="flex-1 font-plus-jakarta-medium text-gray-900"
+                            className="flex-1 font-plus-jakarta-semibold text-gray-900"
                             placeholder="Masukkan nama lengkap Anda"
                             placeholderTextColor="#9CA3AF"
                             value={formData.name}
@@ -167,11 +167,11 @@ export default function RegisterScreen() {
                 </View>
 
                 <View>
-                    <Text className="text-gray-700 mb-2 font-plus-jakarta-bold text-sm">NIK (Wajib)</Text>
+                    <Text className="text-gray-700 mb-2 font-plus-jakarta-extrabold text-sm">NIK (Wajib)</Text>
                     <View className="flex-row items-center w-full bg-white border border-gray-200 rounded-xl px-4 py-3 focus:border-blue-500">
                         <User size={20} color="#9CA3AF" className="mr-3" />
                         <TextInput
-                            className="flex-1 font-plus-jakarta-medium text-gray-900"
+                            className="flex-1 font-plus-jakarta-semibold text-gray-900"
                             placeholder="Masukkan 16 digit NIK"
                             placeholderTextColor="#9CA3AF"
                             keyboardType="number-pad"
@@ -183,11 +183,11 @@ export default function RegisterScreen() {
                 </View>
 
                 <View>
-                    <Text className="text-gray-700 mb-2 font-plus-jakarta-bold text-sm">No Telepon</Text>
+                    <Text className="text-gray-700 mb-2 font-plus-jakarta-extrabold text-sm">No Telepon</Text>
                     <View className="flex-row items-center w-full bg-white border border-gray-200 rounded-xl px-4 py-3 focus:border-blue-500">
                         <Phone size={20} color="#9CA3AF" className="mr-3" />
                         <TextInput
-                            className="flex-1 font-plus-jakarta-medium text-gray-900"
+                            className="flex-1 font-plus-jakarta-semibold text-gray-900"
                             placeholder="Contoh: 081234567890"
                             placeholderTextColor="#9CA3AF"
                             keyboardType="phone-pad"
@@ -268,7 +268,7 @@ export default function RegisterScreen() {
                 </View>
 
                 <TouchableOpacity 
-                    className="flex-row w-full bg-blue-600 rounded-xl py-4 mt-4 shadow-lg shadow-blue-200 justify-center items-center"
+                    className="flex-row w-full bg-blue-600 rounded-2xl py-4 mt-4 shadow-lg shadow-blue-200 justify-center items-center"
                     onPress={handleRegister}
                     disabled={isLoading}
                 >

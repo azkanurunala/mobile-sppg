@@ -3,23 +3,40 @@ import React, { useState, useEffect } from 'react';
 import { View, Text, ScrollView, TouchableOpacity, ActivityIndicator, Alert } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { StatusBar } from 'expo-status-bar';
-import { ChevronLeft, Info, CheckCircle, XCircle } from 'lucide-react-native';
-import { useLocalSearchParams, useRouter } from 'expo-router';
+import { ChevronLeft, Info, Check, X, Trash2 } from 'lucide-react-native';
+import { useLocalSearchParams, useRouter, useNavigation } from 'expo-router';
 import { fetchApi } from '@/lib/api';
 
 interface ChecklistItem {
   masterItemId: string;
-  key: string;
   name: string;
-  description: string;
+  description: string; // Not used in UI but kept for data
   weight: number;
   isCompleted: boolean | null;
 }
 
-export default function ChecklistScreen() {
+const SOFT_SHADOW = {
+  shadowColor: "#000",
+  shadowOffset: { width: 0, height: 2 },
+  shadowOpacity: 0.05,
+  shadowRadius: 8,
+  elevation: 2,
+};
+
+const FOOTER_SHADOW = {
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: -4 },
+    shadowOpacity: 0.08,
+    shadowRadius: 10,
+    elevation: 10,
+};
+
+export default function ValidationScreen() {
   const { id } = useLocalSearchParams();
   const router = useRouter();
+  const navigation = useNavigation();
   const [items, setItems] = useState<ChecklistItem[]>([]);
+  const [initialItems, setInitialItems] = useState<ChecklistItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [summary, setSummary] = useState<any>(null);
@@ -28,6 +45,7 @@ export default function ChecklistScreen() {
     try {
         const data = await fetchApi(`/sppg/${id}/checklist`);
         setItems(data.checklist);
+        setInitialItems(JSON.parse(JSON.stringify(data.checklist))); // Deep copy
         setSummary(data.summary);
         setLoading(false);
     } catch (error) {
@@ -40,14 +58,61 @@ export default function ChecklistScreen() {
     fetchChecklist();
   }, [id]);
 
+  // Handle Unsaved Changes Warning
+  useEffect(() => {
+    // Helper to extract comparable state
+    const getComparableState = (list: ChecklistItem[]) => 
+        list.map(item => ({ id: item.masterItemId, status: item.isCompleted }));
+
+    const currentState = JSON.stringify(getComparableState(items));
+    const initialState = JSON.stringify(getComparableState(initialItems));
+    const hasUnsavedChanges = currentState !== initialState;
+
+    const beforeRemoveListener = navigation.addListener('beforeRemove', (e) => {
+        if (!hasUnsavedChanges || saving) {
+            // If we don't have unsaved changes, or we are currently saving, then we don't need to do anything
+            return;
+        }
+
+        // Prevent default behavior of leaving the screen
+        e.preventDefault();
+
+        // Prompt the user before leaving the screen
+        Alert.alert(
+            'Data Belum Disimpan',
+            'Anda memiliki perubahan yang belum disimpan. Data yang telah terisi akan hilang. Yakin ingin kembali?',
+            [
+                { text: 'Batal', style: 'cancel', onPress: () => {} },
+                {
+                    text: 'Ya, Kembali',
+                    style: 'destructive',
+                    // If the user confirmed, then we dispatch the action we blocked earlier
+                    // This will continue the action that had triggered the removal of the screen
+                    onPress: () => navigation.dispatch(e.data.action),
+                },
+            ]
+        );
+    });
+
+    return () => {
+        navigation.removeListener('beforeRemove', beforeRemoveListener);
+    };
+  }, [items, initialItems, navigation, saving]);
+
   const toggleItem = (masterItemId: string, status: boolean) => {
     setItems(prevItems => 
         prevItems.map(item => 
             item.masterItemId === masterItemId 
-                ? { ...item, isCompleted: status } 
+                ? { ...item, isCompleted: item.isCompleted === status ? null : status } 
                 : item
         )
     );
+  };
+
+  const calculateProgress = () => {
+      const currentWeight = items.reduce((sum, item) => item.isCompleted === true ? sum + item.weight : sum, 0);
+      const totalWeight = items.reduce((sum, item) => sum + item.weight, 0) || 100;
+      return Math.round((currentWeight / totalWeight) * 100);
   };
 
   const handleSave = async () => {
@@ -63,10 +128,11 @@ export default function ChecklistScreen() {
             })
         });
         
-        // Refetch to get updated summary/calculation from server
-        await fetchChecklist();
+        // Update initialItems locally to avoid warning
+        setInitialItems(JSON.parse(JSON.stringify(items))); // Match current state
         
-        Alert.alert('Sukses', 'Data validasi berhasil disimpan');
+        // Navigate back immediately
+        router.back();
     } catch (error: any) {
         Alert.alert('Gagal', error.message || 'Gagal menyimpan data');
     } finally {
@@ -76,98 +142,152 @@ export default function ChecklistScreen() {
 
   if (loading) {
     return (
-        <View className="flex-1 justify-center items-center">
-            <ActivityIndicator size="large" color="#2563EB" />
+        <View className="flex-1 justify-center items-center bg-[#F8F9FD]">
+            <ActivityIndicator size="large" color="#356DF1" />
         </View>
     );
   }
 
-  // Calculate local progress for immediate feedback
-  const currentWeight = items.reduce((sum, item) => item.isCompleted ? sum + item.weight : sum, 0);
-  const totalWeight = summary?.totalWeight || 100;
-  const percentage = Math.round((currentWeight / totalWeight) * 100);
+  const percentage = calculateProgress();
 
   return (
-    <SafeAreaView className="flex-1 bg-gray-50">
-      <StatusBar style="dark" />
+    <View className="flex-1 bg-[#F8F9FD]">
+      <StatusBar style="light" />
       
-      {/* Header */}
-      <View className="bg-white px-4 py-3 border-b border-gray-100 flex-row items-center justify-between">
-        <View className="flex-row items-center">
-            <TouchableOpacity onPress={() => router.back()} className="p-2 mr-2">
-                <ChevronLeft size={24} color="#1F2937" />
+      {/* A. HEADER & INFO BANNER */}
+      <View className="bg-[#356DF1] pt-12 px-5">
+        <View className="flex-row items-center  mb-6">
+            <TouchableOpacity 
+                onPress={() => router.back()} 
+                className="w-10 h-10 bg-white/20 rounded-full items-center justify-center backdrop-blur-sm mr-4"
+            >
+                <ChevronLeft size={24} color="white" />
             </TouchableOpacity>
-            <Text className="text-lg font-bold text-gray-900 font-plus-jakarta-bold">Checklist Validasi</Text>
+            
+            <View>
+                <Text className="text-white text-lg font-plus-jakarta-extrabold">Validasi Proses Bangun</Text>
+                <Text className="text-blue-100 text-xs font-plus-jakarta-semibold">{items.length > 0 ? `SPPG-${id.toString()}` : 'Detail'}</Text> 
+            </View>
+
         </View>
-        <TouchableOpacity 
-            className="bg-blue-600 px-4 py-2 rounded-lg"
-            onPress={handleSave}
-            disabled={saving}
-        >
-            {saving ? (
-                <ActivityIndicator color="white" size="small" />
-            ) : (
-                <Text className="text-white font-bold text-sm">Simpan</Text>
-            )}
-        </TouchableOpacity>
+
+        {/* Info Banner */}
+
       </View>
 
-      {/* Progress Summary */}
-      <View className="bg-blue-600 p-6">
-        <View className="flex-row justify-between items-center mb-2">
-            <Text className="text-blue-100 font-plus-jakarta-medium">Total Progress</Text>
-            <Text className="text-white font-bold text-2xl">{percentage}%</Text>
+      <ScrollView 
+        className="flex-1 px-5 pt-6"
+        contentContainerStyle={{ paddingBottom: 180 }}
+        showsVerticalScrollIndicator={false}
+      >
+        <View className="bg-[#EFF6FF] rounded-xl p-3 flex-row items-start shadow-sm mb-4">
+            <Info size={16} color="#1E3A8A" style={{ marginTop: 2, marginRight: 8 }} />
+            <Text className="flex-1 text-[#1E3A8A] text-xs font-plus-jakarta-semibold leading-4">
+                Checklist ini digunakan untuk memvalidasi bahwa bukti yang telah diunggah benar, lengkap, dan sesuai kondisi lapangan.
+            </Text>
         </View>
-        <View className="h-2 bg-blue-800 rounded-full overflow-hidden">
-            <View 
-                className="h-full bg-blue-300 rounded-full" 
-                style={{ width: `${percentage}%` }} 
-            />
-        </View>
-      </View>
-
-      <ScrollView className="flex-1 p-4">
          {items.map((item) => (
-             <View key={item.masterItemId} className="bg-white p-4 rounded-xl mb-3 shadow-sm border border-gray-100">
-                <View className="flex-row justify-between items-start mb-2">
-                    <Text className="text-gray-900 font-bold text-base flex-1 mr-2 font-plus-jakarta-bold">
-                        {item.name}
+             <View 
+                key={item.masterItemId} 
+                className="bg-white p-4 rounded-[16px] mb-4 border border-gray-50"
+                style={SOFT_SHADOW}
+             >
+                {/* Header Kartu */}
+                <View className="flex-row justify-between items-start mb-4">
+                    <Text className="flex-1 text-[#1F2937] text-sm font-plus-jakarta-extrabold leading-5 mr-3">
+                        {item.description}
                     </Text>
-                    <View className="bg-gray-100 px-2 py-1 rounded">
-                        <Text className="text-gray-600 text-xs font-bold">{item.weight}%</Text>
+                    <View className="bg-[#DBEAFE] px-2 py-1 rounded-full">
+                        <Text className="text-[#2563EB] text-[10px] font-plus-jakarta-extrabold">{item.weight}%</Text>
                     </View>
                 </View>
-                
-                <Text className="text-gray-500 text-sm mb-4 font-plus-jakarta-medium">
-                    {item.description}
-                </Text>
 
-                <View className="flex-row space-x-3">
+                {/* C. INTERACTIVE TOGGLE BUTTONS */}
+                <View className="flex-row">
+                    {/* Tombol YA */}
                     <TouchableOpacity 
-                        className={`flex-1 flex-row items-center justify-center py-3 rounded-lg border ${item.isCompleted === true ? 'bg-green-50 border-green-500' : 'bg-white border-gray-200'}`}
+                        className={`flex-1 flex-row items-center justify-center h-12 rounded-full border mr-3 ${
+                            item.isCompleted === true 
+                            ? 'bg-[#ECFDF5] border-[#10B981]' 
+                            : 'bg-white border-gray-200'
+                        }`}
                         onPress={() => toggleItem(item.masterItemId, true)}
+                        activeOpacity={0.8}
                     >
-                        <CheckCircle size={18} color={item.isCompleted === true ? '#16A34A' : '#9CA3AF'} />
-                        <Text className={`ml-2 font-bold ${item.isCompleted === true ? 'text-green-600' : 'text-gray-500'}`}>
+                        {item.isCompleted === true ? (
+                             <View className="bg-[#10B981] w-5 h-5 rounded-full items-center justify-center mr-2">
+                                <Check size={12} color="white" strokeWidth={3} />
+                             </View>
+                        ) : (
+                             <View className="border border-gray-300 w-5 h-5 rounded-full mr-2" />
+                        )}
+                        <Text className={`font-plus-jakarta-extrabold text-sm ${item.isCompleted === true ? 'text-[#059669]' : 'text-gray-400'}`}>
                             YA
                         </Text>
                     </TouchableOpacity>
 
+                    {/* Tombol TIDAK */}
                     <TouchableOpacity 
-                        className={`flex-1 flex-row items-center justify-center py-3 rounded-lg border ${item.isCompleted === false ? 'bg-red-50 border-red-500' : 'bg-white border-gray-200'}`}
+                        className={`flex-1 flex-row items-center justify-center h-12 rounded-full border ${
+                            item.isCompleted === false 
+                            ? 'bg-[#FEF2F2] border-[#EF4444]' 
+                            : 'bg-white border-gray-200'
+                        }`}
                         onPress={() => toggleItem(item.masterItemId, false)}
+                        activeOpacity={0.8}
                     >
-                         <XCircle size={18} color={item.isCompleted === false ? '#EF4444' : '#9CA3AF'} />
-                         <Text className={`ml-2 font-bold ${item.isCompleted === false ? 'text-red-600' : 'text-gray-500'}`}>
+                         {item.isCompleted === false ? (
+                             <View className="bg-[#EF4444] w-5 h-5 rounded-full items-center justify-center mr-2">
+                                <X size={12} color="white" strokeWidth={3} />
+                             </View>
+                        ) : (
+                             <View className="border border-gray-300 w-5 h-5 rounded-full mr-2" />
+                        )}
+                         <Text className={`font-plus-jakarta-extrabold text-sm ${item.isCompleted === false ? 'text-[#DC2626]' : 'text-gray-400'}`}>
                             TIDAK
                         </Text>
                     </TouchableOpacity>
                 </View>
              </View>
          ))}
-         
-         <View className="h-10" />
       </ScrollView>
-    </SafeAreaView>
+
+      {/* D. STICKY FOOTER */}
+      <View 
+        className="absolute bottom-0 left-0 right-0 bg-white p-5 pb-8 z-20"
+        style={FOOTER_SHADOW}
+      >
+         <View className="flex-row justify-between items-center mb-2">
+             <Text className="text-gray-400 text-[10px] font-plus-jakarta-extrabold tracking-widest">HASIL VALIDASI DATA PERSIAPAN</Text>
+             <Text className="text-[#356DF1] text-lg font-plus-jakarta-extrabold">{percentage}%</Text>
+         </View>
+         
+         {/* Progress Bar */}
+         <View className="h-2 bg-gray-100 rounded-full overflow-hidden mb-5">
+            <View 
+                className="h-full bg-[#356DF1] rounded-full" 
+                style={{ width: `${percentage}%` }} 
+            />
+         </View>
+
+         {/* Main Button */}
+         <TouchableOpacity 
+            className="bg-[#356DF1] h-[52px] rounded-2xl flex-row items-center justify-center shadow-lg shadow-blue-500/30"
+            onPress={handleSave}
+            disabled={saving}
+         >
+            {saving ? (
+                <ActivityIndicator color="white" />
+            ) : (
+                <>
+                    <View className="bg-white/20 p-1 rounded-md mr-2">
+                        <Check size={14} color="white" strokeWidth={3} />
+                    </View>
+                    <Text className="text-white font-plus-jakarta-extrabold text-base">Simpan Validasi</Text>
+                </>
+            )}
+         </TouchableOpacity>
+      </View>
+    </View>
   );
 }

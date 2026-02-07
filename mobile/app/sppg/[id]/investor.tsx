@@ -45,13 +45,13 @@ export default function InvestorScreen() {
         <TouchableOpacity onPress={() => router.back()} className="p-2 mr-2">
             <ChevronLeft size={24} color="#1F2937" />
         </TouchableOpacity>
-        <Text className="text-lg font-bold text-gray-900 font-plus-jakarta-bold">Detail Investor</Text>
+        <Text className="text-lg font-bold text-gray-900 font-plus-jakarta-extrabold">Detail Investor</Text>
       </View>
 
       <ScrollView className="flex-1 p-4">
         {!investor ? (
             <View className="items-center justify-center mt-20">
-                <Text className="text-gray-500 font-plus-jakarta-medium">Belum ada data investor</Text>
+                <Text className="text-gray-500 font-plus-jakarta-semibold">Belum ada data investor</Text>
             </View>
         ) : (
             <>
