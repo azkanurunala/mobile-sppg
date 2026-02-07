@@ -2,6 +2,7 @@
 
 import { X, Loader2 } from 'lucide-react';
 import { useState, useEffect } from 'react';
+import { SearchableSelect } from '@/components/SearchableSelect';
 import { createUser, updateUser, getLocationChildren } from './actions';
 
 interface UserModalProps {
@@ -21,6 +22,7 @@ export default function UserModal({ isOpen, onClose, user, provinces, teams }: U
   // Cascading states
   const [selectedProvinceId, setSelectedProvinceId] = useState(user?.korwilProfile?.assignedRegency?.provinceId || '');
   const [selectedRegencyId, setSelectedRegencyId] = useState(user?.korwilProfile?.assignedRegencyId || '');
+  const [teamId, setTeamId] = useState(user?.korwilProfile?.teamId || '');
   const [regencies, setRegencies] = useState<any[]>([]);
 
   useEffect(() => {
@@ -30,11 +32,13 @@ export default function UserModal({ isOpen, onClose, user, provinces, teams }: U
         const provId = user.korwilProfile?.assignedRegency?.provinceId || '';
         setSelectedProvinceId(provId);
         setSelectedRegencyId(user.korwilProfile?.assignedRegencyId || '');
+        setTeamId(user.korwilProfile?.teamId || '');
         if (provId) loadRegencies(provId);
       } else {
         setRole('USER');
         setSelectedProvinceId('');
         setSelectedRegencyId('');
+        setTeamId('');
         setRegencies([]);
       }
     }
@@ -108,17 +112,17 @@ export default function UserModal({ isOpen, onClose, user, provinces, teams }: U
             </div>
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">Role</label>
-              <select
+              <SearchableSelect
                 name="role"
+                options={[
+                  { label: 'USER', value: 'USER' },
+                  { label: 'KORWIL (Koordinator Wilayah)', value: 'KORWIL' },
+                  { label: 'ADMIN', value: 'ADMIN' },
+                  { label: 'SUPER_ADMIN', value: 'SUPER_ADMIN' }
+                ]}
                 value={role}
-                onChange={(e) => setRole(e.target.value)}
-                className="w-full border p-2.5 rounded-lg bg-white focus:ring-2 focus:ring-blue-500 outline-none"
-              >
-                <option value="USER">USER</option>
-                <option value="KORWIL">KORWIL (Koordinator Wilayah)</option>
-                <option value="ADMIN">ADMIN</option>
-                <option value="SUPER_ADMIN">SUPER_ADMIN</option>
-              </select>
+                onChange={(val) => setRole(String(val))}
+              />
             </div>
           </div>
 
@@ -197,14 +201,15 @@ export default function UserModal({ isOpen, onClose, user, provinces, teams }: U
                   </div>
                   <div>
                     <label className="block text-xs font-medium text-gray-600 mb-1">Team Assignment</label>
-                    <select
+                    <SearchableSelect
                       name="teamId"
-                      defaultValue={user?.korwilProfile?.teamId || ''}
-                      className="w-full border p-2.5 rounded-lg bg-white outline-none focus:ring-2 focus:ring-blue-500"
-                    >
-                      <option value="">No Team</option>
-                      {teams.map(t => <option key={t.id} value={t.id}>{t.name}</option>)}
-                    </select>
+                      options={[
+                        { label: 'No Team', value: '' },
+                        ...teams.map(t => ({ label: t.name, value: t.id }))
+                      ]}
+                      value={teamId}
+                      onChange={(val) => setTeamId(String(val))}
+                    />
                   </div>
                 </div>
 
@@ -217,28 +222,35 @@ export default function UserModal({ isOpen, onClose, user, provinces, teams }: U
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                     <div>
                        <label className="block text-[10px] uppercase font-bold text-gray-500 mb-1">Province</label>
-                       <select
+                       <SearchableSelect
+                         options={[
+                           { label: 'Select Province', value: '' },
+                           ...provinces.map(p => ({ label: p.name, value: p.id }))
+                         ]}
                          value={selectedProvinceId}
-                         onChange={handleProvinceChange}
-                         className="w-full border p-2 rounded-lg bg-white text-sm outline-none focus:ring-2 focus:ring-blue-500"
-                       >
-                         <option value="">Select Province</option>
-                         {provinces.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
-                       </select>
+                         onChange={(val) => {
+                           const id = String(val);
+                           setSelectedProvinceId(id);
+                           setSelectedRegencyId('');
+                           if (id) loadRegencies(id);
+                           else setRegencies([]);
+                         }}
+                         placeholder="Select Province"
+                       />
                     </div>
                     <div>
                        <label className="block text-[10px] uppercase font-bold text-gray-500 mb-1">Regency</label>
-                       <select
+                       <SearchableSelect
                          name="regencyId"
+                         options={[
+                           { label: 'Select Regency', value: '' },
+                           ...regencies.map(r => ({ label: r.name, value: r.id }))
+                         ]}
                          value={selectedRegencyId}
-                         onChange={(e) => setSelectedRegencyId(e.target.value)}
+                         onChange={(val) => setSelectedRegencyId(String(val))}
                          disabled={!selectedProvinceId}
-                         className="w-full border p-2 rounded-lg bg-white text-sm outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50"
-                         required={role === 'KORWIL'}
-                       >
-                         <option value="">Select Regency</option>
-                         {regencies.map(r => <option key={r.id} value={r.id}>{r.name}</option>)}
-                       </select>
+                         placeholder="Select Regency"
+                       />
                     </div>
                   </div>
                 </div>

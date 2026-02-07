@@ -1,0 +1,14 @@
+
+import { NextResponse } from 'next/server';
+import { prisma } from '@/lib/prisma';
+
+export async function GET() {
+  try {
+    const provinces = await prisma.province.findMany({
+      orderBy: { name: 'asc' }
+    });
+    return NextResponse.json(provinces);
+  } catch (error) {
+    return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
+  }
+}

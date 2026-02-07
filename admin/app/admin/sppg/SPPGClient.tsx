@@ -1,12 +1,13 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import Link from 'next/link';
 import { Plus, Edit, Trash2, MapPin, ExternalLink } from 'lucide-react';
 import { SPPGModal } from './SPPGModal';
-import { deleteSPPG } from './actions';
+import { deleteSPPG, getLocationChildren } from './actions';
 import { getSppgStatusLabel } from '@/lib/constants/sppg-status';
 import { DataTable, Column } from '@/components/DataTable';
+import { SearchableSelect } from '@/components/SearchableSelect';
 
 interface SPPGClientProps {
   sppgs: any[];
@@ -18,6 +19,52 @@ export function SPPGClient({ sppgs: initialSppgs, investors, provinces }: SPPGCl
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedSppg, setSelectedSppg] = useState<any>(null);
   const [loading, setLoading] = useState<string | null>(null);
+
+  // Region Filters State
+  const [selectedProvince, setSelectedProvince] = useState<string>('');
+  const [selectedRegency, setSelectedRegency] = useState<string>('');
+  const [selectedDistrict, setSelectedDistrict] = useState<string>('');
+  const [selectedVillage, setSelectedVillage] = useState<string>('');
+
+  const [regencies, setRegencies] = useState<any[]>([]);
+  const [districts, setDistricts] = useState<any[]>([]);
+  const [villages, setVillages] = useState<any[]>([]);
+
+  // Fetch Regencies when Province changes
+  useEffect(() => {
+    if (selectedProvince) {
+      getLocationChildren(selectedProvince, 'regencies').then(setRegencies);
+    } else {
+      setRegencies([]);
+    }
+    setSelectedRegency('');
+    setSelectedDistrict('');
+    setSelectedVillage('');
+    setDistricts([]);
+    setVillages([]);
+  }, [selectedProvince]);
+
+  // Fetch Districts when Regency changes
+  useEffect(() => {
+    if (selectedRegency) {
+      getLocationChildren(selectedRegency, 'districts').then(setDistricts);
+    } else {
+      setDistricts([]);
+    }
+    setSelectedDistrict('');
+    setSelectedVillage('');
+    setVillages([]);
+  }, [selectedRegency]);
+
+  // Fetch Villages when District changes
+  useEffect(() => {
+    if (selectedDistrict) {
+      getLocationChildren(selectedDistrict, 'villages').then(setVillages);
+    } else {
+      setVillages([]);
+    }
+    setSelectedVillage('');
+  }, [selectedDistrict]);
 
   const handleOpenCreate = () => {
     setSelectedSppg(null);
@@ -58,7 +105,7 @@ export function SPPGClient({ sppgs: initialSppgs, investors, provinces }: SPPGCl
       cell: (sppg) => (
         <div className="flex flex-col">
           <span className="text-sm font-bold text-gray-900 uppercase">{sppg.id}</span>
-          <span className="text-[10px] text-gray-500 mt-0.5">Updated: {new Date(sppg.updatedAt).toLocaleDateString()}</span>
+          <span className="text-[10px] text-gray-500 mt-0.5">Updated: {new Date(sppg.updatedAt).toLocaleDateString('en-GB')}</span>
         </div>
       )
     },
@@ -91,12 +138,12 @@ export function SPPGClient({ sppgs: initialSppgs, investors, provinces }: SPPGCl
     },
     {
       header: 'Status & Progress',
-      accessorKey: 'status',
+      accessorKey: 'statusId',
       sortable: true,
       cell: (sppg) => (
         <div className="flex flex-col items-start min-w-[150px]">
-          <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold border ${getStatusColor(sppg.status)}`}>
-            {getSppgStatusLabel(sppg.status)}
+          <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold border ${getStatusColor(sppg.statusId)}`}>
+            {getSppgStatusLabel(sppg.statusId)}
           </span>
           <div className="w-full mt-2 bg-gray-100 rounded-full h-1.5 overflow-hidden">
             <div 
@@ -143,7 +190,7 @@ export function SPPGClient({ sppgs: initialSppgs, investors, provinces }: SPPGCl
   const sppgFilters = [
     {
       label: 'Status',
-      field: 'status',
+      field: 'statusId',
       options: [
         { label: 'Assign Investor', value: '1' },
         { label: 'Pendaftaran', value: '2' },
@@ -161,6 +208,37 @@ export function SPPGClient({ sppgs: initialSppgs, investors, provinces }: SPPGCl
     }
   ];
 
+  const filteredData = useMemo(() => {
+    const data = initialSppgs.filter(sppg => {
+      // Helper to get location IDs, falling back to nested relations if snapshot is missing
+      const pId = sppg.provinceId || sppg.village?.district?.regency?.provinceId;
+      const rId = sppg.regencyId || sppg.village?.district?.regencyId;
+      const dId = sppg.districtId || sppg.village?.districtId;
+      const vId = sppg.villageId;
+
+      if (selectedProvince && pId !== selectedProvince) return false;
+      if (selectedRegency && rId !== selectedRegency) return false;
+      if (selectedDistrict && dId !== selectedDistrict) return false;
+      if (selectedVillage && vId !== selectedVillage) return false;
+      
+      return true;
+    });
+    
+    // Debug: Log filter statistics
+    if (selectedProvince || selectedRegency || selectedDistrict || selectedVillage) {
+        console.log(`[Filter Debug] Total: ${initialSppgs.length}, Matches: ${data.length}`);
+        if (data.length === 0 && initialSppgs.length > 0) {
+            console.log(`[Filter Debug] First item check:`, {
+                id: initialSppgs[0].id,
+                pId: initialSppgs[0].provinceId || initialSppgs[0].village?.district?.regency?.provinceId,
+                selectedProvince
+            });
+        }
+    }
+    
+    return data;
+  }, [initialSppgs, selectedProvince, selectedRegency, selectedDistrict, selectedVillage]);
+
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
@@ -177,8 +255,39 @@ export function SPPGClient({ sppgs: initialSppgs, investors, provinces }: SPPGCl
         </button>
       </div>
 
+      {/* Region Filters */}
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-4 bg-white p-4 rounded-xl border border-gray-200 shadow-sm">
+        <SearchableSelect
+          placeholder="Filter Province"
+          options={[{ label: 'All Provinces', value: '' }, ...provinces.map(p => ({ label: p.name, value: p.id }))]}
+          value={selectedProvince}
+          onChange={(val) => setSelectedProvince(String(val))}
+        />
+        <SearchableSelect
+          placeholder="Filter Regency"
+          options={[{ label: 'All Regencies', value: '' }, ...regencies.map(r => ({ label: r.name, value: r.id }))]}
+          value={selectedRegency}
+          onChange={(val) => setSelectedRegency(String(val))}
+          disabled={!selectedProvince}
+        />
+        <SearchableSelect
+          placeholder="Filter District"
+          options={[{ label: 'All Districts', value: '' }, ...districts.map(d => ({ label: d.name, value: d.id }))]}
+          value={selectedDistrict}
+          onChange={(val) => setSelectedDistrict(String(val))}
+          disabled={!selectedRegency}
+        />
+        <SearchableSelect
+          placeholder="Filter Village"
+          options={[{ label: 'All Villages', value: '' }, ...villages.map(v => ({ label: v.name, value: v.id }))]}
+          value={selectedVillage}
+          onChange={(val) => setSelectedVillage(String(val))}
+          disabled={!selectedDistrict}
+        />
+      </div>
+
       <DataTable
-        data={initialSppgs}
+        data={filteredData}
         columns={columns}
         searchFields={['id', 'villageName', 'districtName', 'regencyName', 'investor.name']}
         searchPlaceholder="Search by ID, Village, or Investor..."

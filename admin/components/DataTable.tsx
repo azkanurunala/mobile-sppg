@@ -16,9 +16,15 @@ import {
 import { clsx, type ClassValue } from 'clsx';
 import { twMerge } from 'tailwind-merge';
 
+import { SearchableSelect } from './SearchableSelect';
+
 function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
 }
+
+// ... existing code ...
+
+// Removed accidental insertion
 
 export interface Column<T> {
   header: string;
@@ -147,17 +153,16 @@ export function DataTable<T>({
           </div>
 
           {filters.map((filter) => (
-            <div key={filter.field.toString()} className="flex items-center gap-2">
-              <select
+            <div key={filter.field.toString()} className="flex items-center gap-2 min-w-[150px]">
+              <SearchableSelect
+                placeholder={filter.label}
+                options={[
+                  { label: `All ${filter.label}s`, value: '' }, // Add "All" option explicitly
+                  ...filter.options.map(opt => ({ label: opt.label, value: opt.value }))
+                ]}
                 value={activeFilters[filter.field.toString()] || ''}
-                onChange={(e) => handleFilterChange(filter.field.toString(), e.target.value)}
-                className="px-3 py-2 border border-gray-200 rounded-lg text-sm bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 min-w-[140px]"
-              >
-                <option value="">{filter.label}</option>
-                {filter.options.map((opt) => (
-                  <option key={opt.value} value={opt.value}>{opt.label}</option>
-                ))}
-              </select>
+                onChange={(val) => handleFilterChange(filter.field.toString(), val)}
+              />
             </div>
           ))}
 

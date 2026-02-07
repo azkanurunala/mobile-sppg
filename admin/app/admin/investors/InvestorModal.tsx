@@ -2,6 +2,7 @@
 
 import { X } from 'lucide-react';
 import { useState, useEffect } from 'react';
+import { SearchableSelect } from '@/components/SearchableSelect';
 import { createInvestor, updateInvestor } from './actions';
 
 interface InvestorModalProps {
@@ -13,6 +14,7 @@ interface InvestorModalProps {
 export function InvestorModal({ isOpen, onClose, investor }: InvestorModalProps) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [type, setType] = useState(investor?.type || 'Perusahaan');
 
   if (!isOpen) return null;
 
@@ -68,14 +70,15 @@ export function InvestorModal({ isOpen, onClose, investor }: InvestorModalProps)
             </div>
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">Type</label>
-              <select
+              <SearchableSelect
                 name="type"
-                defaultValue={investor?.type || 'Perusahaan'}
-                className="w-full border p-2.5 rounded-lg bg-white focus:ring-2 focus:ring-blue-500 outline-none"
-              >
-                <option value="Perusahaan">Perusahaan</option>
-                <option value="Individu">Individu</option>
-              </select>
+                options={[
+                  { label: 'Perusahaan', value: 'Perusahaan' },
+                  { label: 'Individu', value: 'Individu' }
+                ]}
+                value={type}
+                onChange={(val) => setType(String(val))}
+              />
             </div>
           </div>
 

@@ -2,6 +2,7 @@
 
 import { X, Loader2 } from 'lucide-react';
 import { useState, useEffect } from 'react';
+import { SearchableSelect } from '@/components/SearchableSelect';
 import { createSPPG, updateSPPG, getLocationChildren } from './actions';
 import { SPPG_STATUS_OPTIONS } from '@/lib/constants/sppg-status';
 
@@ -18,6 +19,10 @@ export function SPPGModal({ isOpen, onClose, sppg, investors, provinces }: SPPGM
   const [fetchingLocations, setFetchingLocations] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  // State for selects
+  const [status, setStatus] = useState(sppg?.status || 1);
+  const [investorId, setInvestorId] = useState(sppg?.investorId || '');
+
   // Cascading states
   const [selectedProvinceId, setSelectedProvinceId] = useState(sppg?.provinceId || '');
   const [selectedRegencyId, setSelectedRegencyId] = useState(sppg?.regencyId || '');
@@ -31,6 +36,8 @@ export function SPPGModal({ isOpen, onClose, sppg, investors, provinces }: SPPGM
   // Initial load for editing
   useEffect(() => {
     if (isOpen && sppg) {
+        setStatus(sppg.status || 1);
+        setInvestorId(sppg.investorId || '');
         setSelectedProvinceId(sppg.provinceId || '');
         setSelectedRegencyId(sppg.regencyId || '');
         setSelectedDistrictId(sppg.districtId || '');
@@ -42,6 +49,8 @@ export function SPPGModal({ isOpen, onClose, sppg, investors, provinces }: SPPGM
         if (sppg.districtId) loadVillages(sppg.districtId);
     } else if (isOpen) {
         // Reset for create
+        setStatus(1);
+        setInvestorId('');
         setSelectedProvinceId('');
         setSelectedRegencyId('');
         setSelectedDistrictId('');
@@ -157,32 +166,27 @@ export function SPPGModal({ isOpen, onClose, sppg, investors, provinces }: SPPGM
             </div>
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">Status</label>
-              <select
+              <SearchableSelect
                 name="status"
-                defaultValue={sppg?.status || 1}
-                className="w-full border p-2.5 rounded-lg bg-white focus:ring-2 focus:ring-blue-500 outline-none"
-              >
-                {SPPG_STATUS_OPTIONS.map((option) => (
-                  <option key={option.value} value={option.value}>
-                    {option.label}
-                  </option>
-                ))}
-              </select>
+                options={SPPG_STATUS_OPTIONS}
+                value={status}
+                onChange={(val) => setStatus(Number(val))}
+              />
             </div>
           </div>
 
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">Investor</label>
-            <select
+            <SearchableSelect
               name="investorId"
-              defaultValue={sppg?.investorId || ''}
-              className="w-full border p-2.5 rounded-lg bg-white focus:ring-2 focus:ring-blue-500 outline-none"
-            >
-              <option value="">Select Investor (Optional)</option>
-              {investors.map((i) => (
-                <option key={i.id} value={i.id}>{i.name} ({i.id})</option>
-              ))}
-            </select>
+              options={[
+                { label: 'Select Investor (Optional)', value: '' },
+                ...investors.map(i => ({ label: `${i.name} (${i.id})`, value: i.id }))
+              ]}
+              value={investorId}
+              onChange={(val) => setInvestorId(String(val))}
+              placeholder="Select Investor (Optional)"
+            />
           </div>
 
           <div className="space-y-3 bg-gray-50 p-4 rounded-xl border">
@@ -194,52 +198,79 @@ export function SPPGModal({ isOpen, onClose, sppg, investors, provinces }: SPPGM
             <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                 <div>
                    <label className="block text-[10px] uppercase font-bold text-gray-500 mb-1">Province</label>
-                   <select
+                   <SearchableSelect
+                     options={[
+                       { label: 'Select Province', value: '' },
+                       ...provinces.map(p => ({ label: p.name, value: p.id }))
+                     ]}
                      value={selectedProvinceId}
-                     onChange={handleProvinceChange}
-                     className="w-full border p-2 rounded-lg bg-white text-sm outline-none focus:ring-2 focus:ring-blue-500"
-                   >
-                     <option value="">Select Province</option>
-                     {provinces.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
-                   </select>
+                     onChange={(val) => {
+                       const id = String(val);
+                       setSelectedProvinceId(id);
+                       setSelectedRegencyId('');
+                       setSelectedDistrictId('');
+                       setSelectedVillageId('');
+                       setDistricts([]);
+                       setVillages([]);
+                       if (id) loadRegencies(id);
+                       else setRegencies([]);
+                     }}
+                     placeholder="Select Province"
+                   />
                 </div>
                 <div>
                    <label className="block text-[10px] uppercase font-bold text-gray-500 mb-1">Regency</label>
-                   <select
+                   <SearchableSelect
+                     options={[
+                       { label: 'Select Regency', value: '' },
+                       ...regencies.map(r => ({ label: r.name, value: r.id }))
+                     ]}
                      value={selectedRegencyId}
-                     onChange={handleRegencyChange}
+                     onChange={(val) => {
+                       const id = String(val);
+                       setSelectedRegencyId(id);
+                       setSelectedDistrictId('');
+                       setSelectedVillageId('');
+                       setVillages([]);
+                       if (id) loadDistricts(id);
+                       else setDistricts([]);
+                     }}
                      disabled={!selectedProvinceId}
-                     className="w-full border p-2 rounded-lg bg-white text-sm outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50"
-                   >
-                     <option value="">Select Regency</option>
-                     {regencies.map(r => <option key={r.id} value={r.id}>{r.name}</option>)}
-                   </select>
+                     placeholder="Select Regency"
+                   />
                 </div>
                 <div>
                    <label className="block text-[10px] uppercase font-bold text-gray-500 mb-1">District</label>
-                   <select
+                   <SearchableSelect
+                     options={[
+                       { label: 'Select District', value: '' },
+                       ...districts.map(d => ({ label: d.name, value: d.id }))
+                     ]}
                      value={selectedDistrictId}
-                     onChange={handleDistrictChange}
+                     onChange={(val) => {
+                       const id = String(val);
+                       setSelectedDistrictId(id);
+                       setSelectedVillageId('');
+                       if (id) loadVillages(id);
+                       else setVillages([]);
+                     }}
                      disabled={!selectedRegencyId}
-                     className="w-full border p-2 rounded-lg bg-white text-sm outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50"
-                   >
-                     <option value="">Select District</option>
-                     {districts.map(d => <option key={d.id} value={d.id}>{d.name}</option>)}
-                   </select>
+                     placeholder="Select District"
+                   />
                 </div>
                 <div>
                    <label className="block text-[10px] uppercase font-bold text-gray-500 mb-1">Village</label>
-                   <select
+                   <SearchableSelect
                      name="villageId"
+                     options={[
+                       { label: 'Select Village', value: '' },
+                       ...villages.map(v => ({ label: v.name, value: v.id }))
+                     ]}
                      value={selectedVillageId}
-                     onChange={(e) => setSelectedVillageId(e.target.value)}
+                     onChange={(val) => setSelectedVillageId(String(val))}
                      disabled={!selectedDistrictId}
-                     className="w-full border p-2 rounded-lg bg-white text-sm outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50"
-                     required
-                   >
-                     <option value="">Select Village</option>
-                     {villages.map(v => <option key={v.id} value={v.id}>{v.name}</option>)}
-                   </select>
+                     placeholder="Select Village"
+                   />
                 </div>
             </div>
           </div>

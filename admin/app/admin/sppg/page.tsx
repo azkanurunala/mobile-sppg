@@ -9,7 +9,11 @@ export default async function SPPGPage() {
         include: {
           district: {
             include: {
-              regency: true
+              regency: {
+                include: {
+                  province: true
+                }
+              }
             }
           }
         }
