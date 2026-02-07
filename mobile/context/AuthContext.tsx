@@ -3,12 +3,15 @@ import React, { createContext, useContext, useEffect, useState } from 'react';
 import * as SecureStore from 'expo-secure-store';
 import { useRouter, useSegments } from 'expo-router';
 
+import { API_URL } from '@/lib/api';
+
 interface User {
   id: string;
   name: string;
   phoneNumber: string;
   role: string;
   location?: string;
+  nik?: string;
 }
 
 interface AuthContextType {
@@ -80,7 +83,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       const refreshToken = await SecureStore.getItemAsync('refresh_token');
       if (refreshToken) {
         // Optional: call logout API to revoke token on server
-        await fetch(`${SecureStore.getItemAsync('API_URL') || ''}/auth/logout`, {
+        await fetch(`${API_URL}/auth/logout`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ refreshToken })
