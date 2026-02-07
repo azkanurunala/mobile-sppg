@@ -29,7 +29,7 @@ export async function GET(request: Request, context: { params: Promise<{ id: str
             name: master.name,
             description: master.description,
             weight: master.weight, // Percentage weight
-            isCompleted: found ? found.isCompleted : false,
+            isCompleted: found ? found.isCompleted : null,
             updatedAt: found ? found.updatedAt : null
         };
     });
@@ -68,22 +68,33 @@ export async function POST(request: Request, context: { params: Promise<{ id: st
 
         // Transaction to update progress items and recalculate total
         await prisma.$transaction(async (tx) => {
-            // 1. Upsert progress items
+            // 1. Process items
             for (const item of items) {
-                await tx.sPPGChecklistProgress.upsert({
-                    where: {
-                        sppgId_masterItemId: {
+                // If isCompleted is null, it means "Reset" or "Not Answered" -> Delete record
+                if (item.isCompleted === null) {
+                    await tx.sPPGChecklistProgress.deleteMany({
+                        where: {
                             sppgId,
                             masterItemId: item.masterItemId
                         }
-                    },
-                    update: { isCompleted: item.isCompleted },
-                    create: {
-                        sppgId,
-                        masterItemId: item.masterItemId,
-                        isCompleted: item.isCompleted
-                    }
-                });
+                    });
+                } else {
+                    // Otherwise upsert (true/false)
+                    await tx.sPPGChecklistProgress.upsert({
+                        where: {
+                            sppgId_masterItemId: {
+                                sppgId,
+                                masterItemId: item.masterItemId
+                            }
+                        },
+                        update: { isCompleted: item.isCompleted },
+                        create: {
+                            sppgId,
+                            masterItemId: item.masterItemId,
+                            isCompleted: item.isCompleted
+                        }
+                    });
+                }
             }
 
             // 2. Recalculate Percentage
