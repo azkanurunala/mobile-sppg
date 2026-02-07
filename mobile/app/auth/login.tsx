@@ -1,6 +1,6 @@
 
 import React, { useState } from 'react';
-import { View, Text, TextInput, TouchableOpacity, Alert, ActivityIndicator } from 'react-native';
+import { View, Text, TextInput, TouchableOpacity, Alert, ActivityIndicator, Image } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { StatusBar } from 'expo-status-bar';
 import { Eye, EyeOff } from 'lucide-react-native';
@@ -46,9 +46,12 @@ export default function LoginScreen() {
       <StatusBar style="dark" />
       <View className="flex-1 px-6 justify-center">
         <View className="items-center mb-10">
-            <View className="w-20 h-20 bg-blue-500 rounded-full mb-4 items-center justify-center">
-                <Text className="text-white font-bold text-2xl">SPPG</Text>
-            </View>
+            <Image 
+              source={require('@/assets/images/logo-bgn.png')} 
+              style={{ width: 120, height: 120 }} 
+              resizeMode="contain"
+              className="mb-4"
+            />
             <Text className="text-2xl font-bold text-gray-900 font-plus-jakarta-bold">
                 Selamat Datang
             </Text>
