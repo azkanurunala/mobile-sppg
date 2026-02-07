@@ -80,7 +80,7 @@ export default function SPPGListScreen() {
        setHasMore(true);
        fetchSPPGs(1, selectedStatus, query, true);
     }, 500),
-    [selectedStatus] // dependency on status
+    [selectedStatus] 
   );
 
   const handleSearchChange = (text: string) => {
@@ -89,6 +89,7 @@ export default function SPPGListScreen() {
   };
 
   const handleStatusChange = (status: string) => {
+    if (status === selectedStatus) return;
     setSelectedStatus(status);
     setPage(1);
     setHasMore(true);
@@ -124,7 +125,7 @@ export default function SPPGListScreen() {
       return 'bg-gray-100 text-gray-700';
   };
 
-  const renderItem = ({ item }: { item: SPPGItem }) => {
+  const renderItem = useCallback(({ item }: { item: SPPGItem }) => {
     const statusStyle = getStatusColor(item.status);
     const bgClass = statusStyle.split(' ')[0];
     const textClass = statusStyle.split(' ')[1];
@@ -194,7 +195,18 @@ export default function SPPGListScreen() {
           )}
         </TouchableOpacity>
       );
-  };
+  }, [router]);
+
+  const renderFilterItem = useCallback(({ item }: { item: string }) => (
+    <TouchableOpacity 
+        className={`px-5 py-2.5 rounded-full mr-2 ${selectedStatus === item ? 'bg-white shadow-sm' : 'bg-blue-800/30 border border-blue-400/30'}`}
+        onPress={() => handleStatusChange(item)}
+    >
+        <Text className={`font-bold text-xs font-plus-jakarta-bold ${selectedStatus === item ? 'text-blue-700' : 'text-blue-100'}`}>
+            {item}
+        </Text>
+    </TouchableOpacity>
+  ), [selectedStatus]);
 
   return (
     <View className="flex-1 bg-gray-50">
@@ -249,16 +261,8 @@ export default function SPPGListScreen() {
                 showsHorizontalScrollIndicator={false}
                 keyExtractor={item => item}
                 contentContainerStyle={{ paddingRight: 20 }}
-                renderItem={({ item }) => (
-                    <TouchableOpacity 
-                        className={`px-5 py-2.5 rounded-full mr-2 ${selectedStatus === item ? 'bg-white shadow-sm' : 'bg-blue-800/30 border border-blue-400/30'}`}
-                        onPress={() => handleStatusChange(item)}
-                    >
-                        <Text className={`font-bold text-xs font-plus-jakarta-bold ${selectedStatus === item ? 'text-blue-700' : 'text-blue-100'}`}>
-                            {item}
-                        </Text>
-                    </TouchableOpacity>
-                )}
+                extraData={selectedStatus}
+                renderItem={renderFilterItem}
             />
         </View>
       </View>
