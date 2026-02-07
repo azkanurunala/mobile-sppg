@@ -125,7 +125,7 @@ export default function SPPGListScreen() {
       return 'bg-gray-100 text-gray-700';
   };
 
-  const renderItem = useCallback(({ item }: { item: SPPGItem }) => {
+  const renderItem = useCallback(({ item, index }: { item: SPPGItem, index: number }) => {
     const statusStyle = getStatusColor(item.status);
     const bgClass = statusStyle.split(' ')[0];
     const textClass = statusStyle.split(' ')[1];
@@ -136,6 +136,7 @@ export default function SPPGListScreen() {
     return (
         <TouchableOpacity 
           className="bg-white p-5 rounded-3xl mb-4 shadow-sm border border-gray-100"
+          style={{ marginTop: index === 0 ? 20 : 0 }}
           onPress={() => router.push(`/sppg/${item.id}`)}
           activeOpacity={0.9}
         >
@@ -151,25 +152,27 @@ export default function SPPGListScreen() {
           </View>
           
           {/* Info Rows */}
-          <View className="flex-row mb-4">
-             <View className="flex-1 mr-2">
-                <View className="flex-row items-center mb-1">
-                    <Building2 size={12} className="text-gray-400 mr-1" />
-                    <Text className="text-gray-400 text-[10px] font-plus-jakarta-bold">Investor</Text>
-                </View>
-                <Text className="text-gray-900 text-sm font-plus-jakarta-bold" numberOfLines={1}>
-                    {item.investor || '-'}
-                </Text>
-             </View>
-             <View className="flex-1">
-                <View className="flex-row items-center mb-1">
-                    <MapPin size={12} className="text-gray-400 mr-1" />
-                    <Text className="text-gray-400 text-[10px] font-plus-jakarta-bold">Lokasi</Text>
-                </View>
-                <Text className="text-gray-900 text-sm font-plus-jakarta-bold" numberOfLines={1}>
-                    {item.location || '-'}
-                </Text>
-             </View>
+          <View className="mb-4 space-y-2">
+              <View className="flex-row items-start">
+                  <View className="flex-row items-center w-[25%]">
+                      <Building2 size={16} color="#9CA3AF" style={{ marginRight: 8 }} />
+                      <Text className="text-gray-500 text-xs font-plus-jakarta-medium">Investor</Text>
+                  </View>
+                  <Text className="text-gray-900 text-sm font-plus-jakarta-bold w-[75%]" numberOfLines={1}>
+                      {item.investor || '-'}
+                  </Text>
+              </View>
+              <View className="flex-row items-start">
+                  <View className="flex-row items-center w-[25%]">
+                      <MapPin size={16} color="#9CA3AF" style={{ marginRight: 8 }} />
+                      <Text className="text-gray-500 text-xs font-plus-jakarta-medium">Lokasi</Text>
+                  </View>
+                  <Text className="text-gray-900 text-sm font-plus-jakarta-bold w-[75%]" numberOfLines={1}>
+                      {item.locationDetail 
+                        ? `Kel. ${item.locationDetail.village}, Kec. ${item.locationDetail.district}, ${item.locationDetail.regency}`
+                        : (item.location || '-')}
+                  </Text>
+              </View>
           </View>
 
           {/* Progress Bar (Conditional) */}
@@ -213,15 +216,12 @@ export default function SPPGListScreen() {
       <StatusBar style="light" />
       
       {/* Blue Header Container */}
-      <View className="bg-blue-600 pt-12 pb-6 px-5 rounded-b-[30px] z-10 shadow-lg shadow-blue-900/20">
+      <View className="bg-blue-600 pt-12 pb-6 z-10 shadow-lg shadow-blue-900/20">
         
         {/* Title Row */}
-        <View className="flex-row justify-between items-start mb-6">
+        <View className="flex-row justify-between items-start mb-6 mx-5">
             <View>
                 <View className="flex-row items-center mb-1">
-                    <View className="bg-white/20 p-1.5 rounded-lg mr-2">
-                        <Text className="text-white font-bold text-xs">SP</Text>
-                    </View>
                     <Text className="text-2xl font-bold text-white font-plus-jakarta-bold">Daftar SPPG</Text>
                 </View>
                 <View className="flex-row items-center ml-1">
@@ -242,7 +242,7 @@ export default function SPPGListScreen() {
         </View>
 
         {/* Search Bar */}
-        <View className="flex-row bg-blue-500/50 border border-blue-400/30 rounded-2xl px-4 py-3 items-center mb-6">
+        <View className="flex-row bg-blue-500/50 border border-blue-400/30 rounded-2xl px-4 py-2 items-center mb-6 mx-5">
             <Search size={20} color="#BFDBFE" />
             <TextInput 
                 className="flex-1 ml-3 font-plus-jakarta-medium text-white"
@@ -260,7 +260,7 @@ export default function SPPGListScreen() {
                 horizontal
                 showsHorizontalScrollIndicator={false}
                 keyExtractor={item => item}
-                contentContainerStyle={{ paddingRight: 20 }}
+                contentContainerStyle={{ paddingHorizontal: 20 }}
                 extraData={selectedStatus}
                 renderItem={renderFilterItem}
             />
@@ -275,7 +275,7 @@ export default function SPPGListScreen() {
             renderItem={renderItem}
             keyExtractor={item => item.id}
             showsVerticalScrollIndicator={false}
-            contentContainerStyle={{ paddingBottom: 100 }}
+            contentContainerStyle={{ paddingBottom: 100, paddingTop: 0 }}
             onRefresh={onRefresh}
             refreshing={refreshing}
             onEndReached={loadMore}

@@ -141,17 +141,16 @@ export default function DashboardScreen() {
     <View className="flex-1 bg-gray-50">
       <StatusBar style="light" />
       
-      {/* 2. HEADER BACKGROUND: Vibrant Blue #356DF1 */}
-      <View className="absolute top-0 left-0 right-0 h-[300px] bg-[#356DF1] rounded-b-[40px]" />
+      <View className="absolute top-0 left-0 right-0 h-[160px] bg-[#356DF1]" />
 
-      <SafeAreaView className="flex-1">
+      <View className="flex-1">
         <ScrollView 
           className="flex-1"
           contentContainerStyle={{ paddingBottom: 100 }}
           refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor="#fff" />}
         >
             {/* Header Content */}
-            <View className="px-6 pt-4 pb-8">
+            <View className="px-6 pt-14 pb-0 mb-4">
                 <View className="flex-row items-center">
                     <View className="w-12 h-12 bg-white/20 rounded-full items-center justify-center border-2 border-white/30 mr-3">
                         <Text className="text-white font-plus-jakarta-bold text-lg">{user?.name?.substring(0,2).toUpperCase()}</Text>
@@ -166,9 +165,9 @@ export default function DashboardScreen() {
                 </View>
             </View>
 
-            {/* Floating Summary Card (Total SPPG) */}
+            {/* Floating Summary Card (Total SPPG) - Overlapping the Header */}
             <View 
-                className="mx-6 bg-white rounded-[20px] p-5 mb-8 flex-row justify-between items-center border border-gray-50"
+                className="mx-6 bg-white rounded-[20px] p-5 mb-8 flex-row justify-between items-center border border-gray-50 bg-white shadow-xl shadow-black/5"
                 style={SOFT_SHADOW}
             >
                 <View>
@@ -194,7 +193,7 @@ export default function DashboardScreen() {
             </View>
 
             {/* 2. HERO CARD (Validasi Data Persiapan) - Vibrant Blue #356DF1 */}
-            <View className="mx-6 bg-[#356DF1] rounded-[24px] p-6 mb-6 overflow-hidden relative shadow-lg shadow-blue-500/30">
+            <View className="mx-6 bg-[#356DF1] rounded-[24px] p-6 mb-0 overflow-hidden relative shadow-lg shadow-blue-500/30 z-20">
                  {/* Subtle Decoration: Opacity 0.05/0.1 */}
                  <View className="absolute -right-16 -top-16 w-48 h-48 bg-white opacity-5 rounded-full" />
                  <View className="absolute -left-10 -bottom-10 w-32 h-32 bg-white opacity-10 rounded-full" />
@@ -214,7 +213,7 @@ export default function DashboardScreen() {
                     </View>
                  </View>
 
-                 <View className="relative z-10">
+                 <View className="relative z-10 pb-6">
                     <View className="flex-row justify-between mb-2">
                         <Text className="text-blue-100 text-xs font-plus-jakarta-medium">Persentase dari Total</Text>
                         <Text className="text-white text-xs font-plus-jakarta-bold">{getPercentage(stats?.summary.prosesPersiapan || 0)}%</Text>
@@ -226,9 +225,9 @@ export default function DashboardScreen() {
                  </View>
             </View>
 
-            {/* Progress Card */}
+            {/* Progress Card - UNDER Hero Card (z-0) */}
             <View 
-                className="mx-6 bg-white rounded-[20px] p-6 mb-8 border border-gray-50"
+                className="mx-6 bg-white rounded-[20px] p-6 pt-12 mb-8 border border-gray-50 -mt-10 relative z-0"
                 style={SOFT_SHADOW}
             >
                 <View className="flex-row justify-between items-start mb-6">
@@ -300,7 +299,7 @@ export default function DashboardScreen() {
             </View>
           
         </ScrollView>
-      </SafeAreaView>
+      </View>
     </View>
   );
 }

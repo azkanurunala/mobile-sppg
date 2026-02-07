@@ -11,15 +11,21 @@ export default function TabLayout() {
         tabBarActiveTintColor: '#2563EB', // Blue-600
         tabBarInactiveTintColor: '#9CA3AF', // Gray-400
         tabBarStyle: {
-          borderTopWidth: 1,
-          borderTopColor: '#F3F4F6',
-          height: 60,
-          paddingBottom: 8,
-          paddingTop: 8,
+          borderTopWidth: 0,
+          elevation: 10,
+          shadowColor: '#000',
+          shadowOffset: { width: 0, height: -2 },
+          shadowOpacity: 0.05,
+          shadowRadius: 10,
+          height: 100,
+          paddingBottom: 30,
+          paddingTop: 15,
+          backgroundColor: 'white',
         },
         tabBarLabelStyle: {
           fontWeight: '600',
           fontSize: 12,
+          marginBottom: 5,
         },
       }}
     >

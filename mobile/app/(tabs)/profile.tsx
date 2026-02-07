@@ -53,7 +53,7 @@ export default function ProfileScreen() {
       <StatusBar style="light" />
       
       {/* Blue Header Background */}
-      <View className="bg-blue-600 pb-32 pt-12 px-6 rounded-b-[40px] relative items-center">
+      <View className="bg-blue-600 pb-8 pt-12 px-6 items-center shadow-lg shadow-blue-900/20">
           <Text className="text-white font-bold text-xl font-plus-jakarta-bold self-start mb-6">Profil Saya</Text>
           
           {/* Profile Card */}
@@ -87,7 +87,7 @@ export default function ProfileScreen() {
           </View>
       </View>
 
-      <ScrollView className="flex-1 px-6 pt-8 -mt-10">
+      <ScrollView className="flex-1 px-6 pt-6">
           <Text className="text-gray-500 font-bold font-plus-jakarta-bold mb-4 text-xs uppercase tracking-wider">Akun</Text>
           <View className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden mb-6">
               <TouchableOpacity 
