@@ -11,22 +11,24 @@ export async function GET(request: Request) {
     
     // Check user role/context
     const authHeader = request.headers.get('authorization');
-    let userId: string | null = null;
-    let assignedRegencyId = null;
-
-    if (authHeader && authHeader.startsWith('Bearer ')) {
-        const token = authHeader.split(' ')[1];
-        const decoded = verifyJwt(token) as UserPayload | null;
-        userId = decoded?.userId || null;
+    if (!authHeader || !authHeader.startsWith('Bearer ')) {
+        return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    if (userId) {
-        const user = await prisma.user.findUnique({
-            where: { id: userId },
-            include: { korwilProfile: true }
-        });
-        assignedRegencyId = user?.korwilProfile?.assignedRegencyId;
+    const token = authHeader.split(' ')[1];
+    const decoded = verifyJwt(token) as UserPayload | null;
+    
+    if (!decoded || !decoded.userId) {
+        return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
+
+    const userId = decoded.userId;
+    const user = await prisma.user.findUnique({
+        where: { id: userId },
+        include: { korwilProfile: true }
+    });
+    
+    let assignedRegencyId = user?.korwilProfile?.assignedRegencyId;
 
     // Define filter based on assigned Regency (if strict scoping is needed)
     // Mobile requirement says "1:1 with admin", implying Korwil sees their area.

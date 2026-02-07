@@ -26,21 +26,25 @@ export async function GET(request: Request) {
     }
 
     const authHeader = request.headers.get('authorization');
-    if (authHeader && authHeader.startsWith('Bearer ')) {
-        const token = authHeader.split(' ')[1];
-        const decoded = verifyJwt(token) as UserPayload | null;
-        
-        if (decoded && decoded.userId) {
-             const userId = decoded.userId;
-             const user = await prisma.user.findUnique({
-                where: { id: userId },
-                include: { korwilProfile: true }
-             });
+    if (!authHeader || !authHeader.startsWith('Bearer ')) {
+        return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
 
-             if (user?.role === 'KORWIL' && user.korwilProfile?.assignedRegencyId) {
-                 where.regencyId = user.korwilProfile.assignedRegencyId;
-             }
-        }
+    const token = authHeader.split(' ')[1];
+    const decoded = verifyJwt(token) as UserPayload | null;
+    
+    if (!decoded || !decoded.userId) {
+        return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
+    const userId = decoded.userId;
+    const user = await prisma.user.findUnique({
+        where: { id: userId },
+        include: { korwilProfile: true }
+    });
+
+    if (user?.role === 'KORWIL' && user.korwilProfile?.assignedRegencyId) {
+        where.regencyId = user.korwilProfile.assignedRegencyId;
     }
 
     const [sppgs, total] = await Promise.all([

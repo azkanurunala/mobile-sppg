@@ -73,7 +73,7 @@ export default function ProfileScreen() {
           </Text>
           
           <View className="flex-row items-center mt-2 opacity-90">
-             <Phone size={14} color="white" className="mr-2" />
+             <Phone size={14} color="white" className="mr-3" />
              <Text className="text-white font-medium font-plus-jakarta-medium text-sm">
                 +62 {user?.phone || '812-3456-7890'}
              </Text>
