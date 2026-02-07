@@ -10,7 +10,7 @@ export async function GET(request: Request, { params }: { params: { id: string }
 
     // 1. Fetch all Master Items (to ensure we show everything, even if not yet init in progress table)
     const masterItems = await prisma.masterChecklistItem.findMany({
-        orderBy: { weight: 'desc' } // Or by some sequence order
+        orderBy: { key: 'asc' } // Sort by key (001_, 002_, etc.)
     });
 
     // 2. Fetch current progress

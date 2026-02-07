@@ -5,13 +5,22 @@ import bcrypt from 'bcryptjs';
 
 export async function GET() {
   try {
+    // Find all regencies starting with 'Kota'
+    const kotaRegencies = await prisma.regency.findMany({
+        where: {
+            name: { startsWith: 'Kota', mode: 'insensitive' }
+        },
+        select: { id: true }
+    });
+    const kotaIds = kotaRegencies.map(r => r.id);
+
     const groupByRegency = await prisma.sPPG.groupBy({
       by: ['regencyId'],
       _count: {
         id: true
       },
       where: {
-          regencyId: { not: null }
+          regencyId: { in: kotaIds }
       },
       orderBy: {
         _count: {
@@ -22,7 +31,7 @@ export async function GET() {
     });
   
     if (groupByRegency.length === 0) {
-      return NextResponse.json({ success: false, error: 'No SPPGs found with valid Regency ID.' });
+      return NextResponse.json({ success: false, error: 'No SPPGs found in any KOTA.' });
     }
   
     const topRegencyId = groupByRegency[0].regencyId!;
@@ -37,11 +46,12 @@ export async function GET() {
         return NextResponse.json({ success: false, error: `Regency ID ${topRegencyId} not found.` });
     }
   
-    // Create User
-    const email = 'nurunalaazka@gmail.com';
+    // Create User 2
+    const email = 'azkaidgw@gmail.com';
     const password = 'sPp6M136B6N&#';
-    const name = 'Korwil Azka';
-    const phone = '085725778315';
+    const name = 'Korwil Azka Idegewe';
+    const phone = '082298422231';
+    const nik = 'KORWIL_AZKA_IDEGEWE_NIK';
     
     const hashedPassword = await bcrypt.hash(password, 10);
   
@@ -67,15 +77,15 @@ export async function GET() {
     await prisma.korwilProfile.upsert({
       where: { userId: user.id },
       update: {
-          nik: 'KORWIL_AZKA_NIK', 
+          nik: nik, 
           assignedRegencyId: regency.id,
-          position: 'Koordinator Wilayah',
+          position: 'Koordinator Wilayah Kota',
       },
       create: {
           userId: user.id,
-          nik: 'KORWIL_AZKA_NIK',
+          nik: nik,
           assignedRegencyId: regency.id,
-          position: 'Koordinator Wilayah'
+          position: 'Koordinator Wilayah Kota'
       }
     });
 
@@ -85,6 +95,7 @@ export async function GET() {
       details: {
           email,
           regency: regency.name,
+          provinsi: regency.province.name,
           sppgCount: count
       }
     });
