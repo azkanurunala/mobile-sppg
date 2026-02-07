@@ -53,11 +53,33 @@ export async function POST(request: Request) {
       },
     });
 
-    // If role is KORWIL and region provided, creating profile?
-    // This part is ambiguous without specific requirements, but I'll add a placeholder.
-    if (role === Role.KORWIL && (regencyId || provinceId)) {
-        // Create Korwil Profile logic here if needed
-        // For now, keeping it simple as per "register.tsx" which just takes basic info.
+    // If role is KORWIL and region provided, create profile
+    if (role === Role.KORWIL && regencyId) {
+        if (!body.nik) {
+            // Delete the user we just created because the profile creation failed validation
+            await prisma.user.delete({ where: { id: newUser.id } });
+            return NextResponse.json(
+                { error: 'NIK is required for KORWIL registration' },
+                { status: 400 }
+            );
+        }
+
+        try {
+            await prisma.korwilProfile.create({
+                data: {
+                    userId: newUser.id,
+                    assignedRegencyId: regencyId,
+                    nik: body.nik, 
+                    academicTitle: body.academicTitle,
+                    position: body.position
+                }
+            });
+        } catch (profileError) {
+            console.error('Error creating KORWIL profile:', profileError);
+            // Rollback user creation
+            await prisma.user.delete({ where: { id: newUser.id } });
+            return NextResponse.json({ error: 'Failed to create KORWIL profile (NIK might be duplicate)' }, { status: 400 });
+        }
     }
 
     return NextResponse.json({
