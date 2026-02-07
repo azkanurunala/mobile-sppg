@@ -2,22 +2,28 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import bcrypt from 'bcryptjs';
-import { signJwt } from '@/lib/jwt';
+import { signAccessToken, signRefreshToken } from '@/lib/jwt';
 
 export async function POST(request: Request) {
   try {
     const body = await request.json();
-    const { phoneNumber, password } = body; 
+    const { identifier, phoneNumber, password } = body; 
+    
+    // Support both old 'phoneNumber' and new 'identifier' fields
+    const loginId = identifier || phoneNumber;
 
-    if (!phoneNumber || !password) {
-        return NextResponse.json({ error: 'Phone number and password required' }, { status: 400 });
+    if (!loginId || !password) {
+        return NextResponse.json({ error: 'Identifier (email or phone) and password required' }, { status: 400 });
     }
 
-    // Find user by phone number
-    // Schema has phoneNumber field, and unique email. 
-    // We should search by phoneNumber.
+    // Find user by phone number or email
     const user = await prisma.user.findFirst({
-      where: { phoneNumber },
+      where: {
+        OR: [
+          { phoneNumber: loginId },
+          { email: loginId }
+        ]
+      },
       include: {
         korwilProfile: {
             include: {
@@ -41,8 +47,18 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'Invalid credentials' }, { status: 401 });
     }
 
-    // Generate JWT
-    const token = signJwt({ userId: user.id, role: user.role });
+    // Generate Tokens
+    const accessToken = signAccessToken({ userId: user.id, role: user.role });
+    const refreshToken = signRefreshToken({ userId: user.id, role: user.role });
+
+    // Save Refresh Token to DB
+    await prisma.refreshToken.create({
+        data: {
+            token: refreshToken,
+            userId: user.id,
+            expiresAt: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000) // 30 days
+        }
+    });
 
     // Determine location name for display
     let locationName = '';
@@ -51,7 +67,8 @@ export async function POST(request: Request) {
     }
 
     return NextResponse.json({
-      token,
+      accessToken,
+      refreshToken,
       user: {
         id: user.id,
         name: user.name,

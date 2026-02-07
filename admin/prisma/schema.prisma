@@ -30,6 +30,7 @@ model User {
 
   accounts      Account[]
   sessions      Session[]
+  refreshTokens RefreshToken[]
 }
 
 model Account {
@@ -60,6 +61,19 @@ model Session {
   user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([userId])
+}
+
+model RefreshToken {
+  id        String   @id @default(cuid())
+  token     String   @unique
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  expiresAt DateTime
+  revoked   Boolean  @default(false)
+  createdAt DateTime @default(now())
+  
+  @@index([userId])
+  @@index([token])
 }
 
 model Team {

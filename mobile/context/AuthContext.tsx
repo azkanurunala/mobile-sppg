@@ -14,18 +14,16 @@ interface User {
 interface AuthContextType {
   user: User | null;
   isLoading: boolean;
-  signIn: (token: string, user: User) => Promise<void>;
+  signIn: (accessToken: string, refreshToken: string, user: User) => Promise<void>;
   signOut: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType>({} as AuthContextType);
 
-// This hook can be used to access the user info.
 export function useAuth() {
   return useContext(AuthContext);
 }
 
-// This hook will protect the route access based on user authentication.
 function useProtectedRoute(user: User | null, isNavigationReady: boolean) {
   const segments = useSegments();
   const router = useRouter();
@@ -35,15 +33,9 @@ function useProtectedRoute(user: User | null, isNavigationReady: boolean) {
 
     const inAuthGroup = segments[0] === 'auth';
 
-    if (
-      // If the user is not signed in and the initial segment is not anything in the auth group.
-      !user &&
-      !inAuthGroup
-    ) {
-      // Redirect to the sign-in page.
+    if (!user && !inAuthGroup) {
       router.replace('/auth/login');
     } else if (user && inAuthGroup) {
-      // Redirect away from the sign-in page.
       router.replace('/(tabs)');
     }
   }, [user, segments, isNavigationReady]);
@@ -55,10 +47,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [isNavigationReady, setIsNavigationReady] = useState(false);
 
   useEffect(() => {
-    // Check for stored token
     const loadUser = async () => {
       try {
-        const token = await SecureStore.getItemAsync('auth_token');
+        const token = await SecureStore.getItemAsync('access_token');
         const userData = await SecureStore.getItemAsync('user_data');
         
         if (token && userData) {
@@ -68,7 +59,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         console.error('Failed to load auth state', e);
       } finally {
         setIsLoading(false);
-        // Add a small delay to ensure navigation is ready or mounted
         setTimeout(() => setIsNavigationReady(true), 100);
       }
     };
@@ -78,14 +68,16 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   useProtectedRoute(user, isNavigationReady);
 
-  const signIn = async (token: string, newUser: User) => {
-    await SecureStore.setItemAsync('auth_token', token);
+  const signIn = async (accessToken: string, refreshToken: string, newUser: User) => {
+    await SecureStore.setItemAsync('access_token', accessToken);
+    await SecureStore.setItemAsync('refresh_token', refreshToken);
     await SecureStore.setItemAsync('user_data', JSON.stringify(newUser));
     setUser(newUser);
   };
 
   const signOut = async () => {
-    await SecureStore.deleteItemAsync('auth_token');
+    await SecureStore.deleteItemAsync('access_token');
+    await SecureStore.deleteItemAsync('refresh_token');
     await SecureStore.deleteItemAsync('user_data');
     setUser(null);
   };

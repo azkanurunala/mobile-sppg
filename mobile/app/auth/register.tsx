@@ -7,10 +7,6 @@ import { Eye, EyeOff, ChevronLeft } from 'lucide-react-native';
 import { useRouter } from 'expo-router';
 import { fetchApi } from '@/lib/api';
 
-// Simple Select Component using native styled view (Use generic Modal/Picker in real prod for better UX)
-// For now, we simulate a picker or use a simplified approach since we don't have a UI library installed yet besides Lucide.
-// We'll iterate on this to fetch provinces/regencies.
-
 export default function RegisterScreen() {
   const router = useRouter();
   const [formData, setFormData] = useState({
@@ -19,7 +15,9 @@ export default function RegisterScreen() {
     password: '',
     confirmPassword: '',
     provinceId: '',
-    regencyId: ''
+    regencyId: '',
+    nik: '', // New field
+    role: 'KORWIL' // Defaulting to KORWIL for this app context
   });
 
   const [provinces, setProvinces] = useState<{id: string, name: string}[]>([]);
@@ -29,7 +27,6 @@ export default function RegisterScreen() {
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   
-  // Selection States (Primitive dropdown simulation)
   const [showProvinceSelect, setShowProvinceSelect] = useState(false);
   const [showRegencySelect, setShowRegencySelect] = useState(false);
 
@@ -64,8 +61,8 @@ export default function RegisterScreen() {
   };
 
   const handleRegister = async () => {
-    if (!formData.name || !formData.phoneNumber || !formData.password || !formData.provinceId || !formData.regencyId) {
-        Alert.alert('Error', 'Mohon lengkapi semua data');
+    if (!formData.name || !formData.phoneNumber || !formData.password || !formData.provinceId || !formData.regencyId || !formData.nik) {
+        Alert.alert('Error', 'Mohon lengkapi semua data including NIK');
         return;
     }
 
@@ -78,21 +75,14 @@ export default function RegisterScreen() {
     try {
         await fetchApi('/auth/register', {
             method: 'POST',
-            body: JSON.stringify({
-                name: formData.name,
-                phoneNumber: formData.phoneNumber,
-                password: formData.password,
-                provinceId: formData.provinceId,
-                regencyId: formData.regencyId,
-                // Defaulting to Standard User, logic can be updated for Korwil
-            })
+            body: JSON.stringify(formData)
         });
 
         Alert.alert('Sukses', 'Registrasi berhasil. Silakan login.', [
             { text: 'OK', onPress: () => router.replace('/auth/login') }
         ]);
     } catch (error: any) {
-        Alert.alert('Registrasi Gagal', error.message || 'Terjadi kesalahan');
+        Alert.alert('Registrasi Gagal', error.message || 'Terjadi kesalahan. NIK mungkin sudah terdaftar.');
     } finally {
         setIsLoading(false);
     }
@@ -123,7 +113,6 @@ export default function RegisterScreen() {
                             <Text className="text-gray-800 font-plus-jakarta-medium">{item.name}</Text>
                         </TouchableOpacity>
                     ))}
-                    {items.length === 0 && <Text className="text-center text-gray-500 mt-4">Tidak ada data</Text>}
                 </ScrollView>
                 <TouchableOpacity className="mt-4 p-3 bg-gray-100 rounded-lg" onPress={onClose}>
                     <Text className="text-center font-bold">Tutup</Text>
@@ -140,7 +129,6 @@ export default function RegisterScreen() {
     <SafeAreaView className="flex-1 bg-white">
       <StatusBar style="dark" />
       
-      {/* Modals */}
       {renderSelectModal(showProvinceSelect, provinces, (id) => setFormData({...formData, provinceId: id, regencyId: ''}), () => setShowProvinceSelect(false), 'Pilih Provinsi')}
       {renderSelectModal(showRegencySelect, regencies, (id) => setFormData({...formData, regencyId: id}), () => setShowRegencySelect(false), 'Pilih Kota/Kabupaten')}
 
@@ -148,7 +136,7 @@ export default function RegisterScreen() {
         <TouchableOpacity onPress={() => router.back()} className="p-2">
             <ChevronLeft size={24} color="#1F2937" />
         </TouchableOpacity>
-        <Text className="text-lg font-bold text-gray-900 ml-2 font-plus-jakarta-bold">Daftar Akun</Text>
+        <Text className="text-lg font-bold text-gray-900 ml-2 font-plus-jakarta-bold">Daftar Akun Korwil</Text>
       </View>
 
       <ScrollView className="flex-1 px-6 pt-6">
@@ -158,9 +146,21 @@ export default function RegisterScreen() {
                 <Text className="text-gray-700 mb-2 font-plus-jakarta-medium">Nama Lengkap</Text>
                 <TextInput
                     className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 font-plus-jakarta-medium"
-                    placeholder="Masukkan nama lengkap Anda"
+                    placeholder="Masukkan nama lengkap"
                     value={formData.name}
                     onChangeText={(text) => setFormData({...formData, name: text})}
+                />
+            </View>
+
+            <View>
+                <Text className="text-gray-700 mb-2 font-plus-jakarta-medium">NIK (Wajib)</Text>
+                <TextInput
+                    className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 font-plus-jakarta-medium"
+                    placeholder="Masukkan 16 digit NIK"
+                    keyboardType="number-pad"
+                    maxLength={16}
+                    value={formData.nik}
+                    onChangeText={(text) => setFormData({...formData, nik: text})}
                 />
             </View>
 
@@ -252,17 +252,10 @@ export default function RegisterScreen() {
                     <ActivityIndicator color="white" />
                 ) : (
                     <Text className="text-white text-center font-bold font-plus-jakarta-bold text-base">
-                        Daftar Sekarang
+                        Daftar Sebagai Korwil
                     </Text>
                 )}
             </TouchableOpacity>
-            
-            <View className="flex-row justify-center mt-4 mb-8">
-                <Text className="text-gray-500 font-plus-jakarta-medium">Sudah punya akun? </Text>
-                <TouchableOpacity onPress={() => router.replace('/auth/login')}>
-                    <Text className="text-blue-600 font-bold font-plus-jakarta-bold">Masuk Disini</Text>
-                </TouchableOpacity>
-            </View>
 
         </View>
       </ScrollView>

@@ -67,6 +67,7 @@ export const getApiDocs = async () => {
                     phoneNumber: { type: 'string' },
                     password: { type: 'string' },
                     email: { type: 'string' },
+                    nik: { type: 'string', description: 'Required for KORWIL role' },
                     role: { type: 'string', enum: ['USER', 'KORWIL'] },
                     provinceId: { type: 'string' },
                     regencyId: { type: 'string' },
@@ -109,7 +110,8 @@ export const getApiDocs = async () => {
                   schema: {
                     type: 'object',
                     properties: {
-                      token: { type: 'string' },
+                      accessToken: { type: 'string' },
+                      refreshToken: { type: 'string' },
                       user: { $ref: '#/components/schemas/User' },
                     },
                   },
@@ -117,6 +119,66 @@ export const getApiDocs = async () => {
               },
             },
             401: { description: 'Invalid credentials' },
+          },
+        },
+      },
+      '/auth/refresh': {
+        post: {
+          summary: 'Refresh access token',
+          tags: ['Auth'],
+          requestBody: {
+            required: true,
+            content: {
+              'application/json': {
+                schema: {
+                  type: 'object',
+                  required: ['refreshToken'],
+                  properties: {
+                    refreshToken: { type: 'string' },
+                  },
+                },
+              },
+            },
+          },
+          responses: {
+            200: {
+              description: 'New tokens issued',
+              content: {
+                'application/json': {
+                  schema: {
+                    type: 'object',
+                    properties: {
+                      accessToken: { type: 'string' },
+                      refreshToken: { type: 'string' },
+                    },
+                  },
+                },
+              },
+            },
+            401: { description: 'Invalid or expired refresh token' },
+          },
+        },
+      },
+      '/auth/logout': {
+        post: {
+          summary: 'Logout user',
+          tags: ['Auth'],
+          requestBody: {
+            required: true,
+            content: {
+              'application/json': {
+                schema: {
+                  type: 'object',
+                  required: ['refreshToken'],
+                  properties: {
+                    refreshToken: { type: 'string' },
+                  },
+                },
+              },
+            },
+          },
+          responses: {
+            200: { description: 'Logged out successfully' },
           },
         },
       },
@@ -330,7 +392,7 @@ export const getApiDocs = async () => {
                         type: 'object',
                         properties: {
                           masterItemId: { type: 'string' },
-                          isCompleted: { type: 'boolean' },
+                          isCompleted: { type: 'boolean', nullable: true, description: 'True for Yes, False for No, Null to reset' },
                         },
                       },
                     },
