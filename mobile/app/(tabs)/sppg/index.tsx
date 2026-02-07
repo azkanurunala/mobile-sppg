@@ -114,57 +114,58 @@ export default function SPPGListScreen() {
 
   const renderItem = ({ item }: { item: SPPGItem }) => (
     <TouchableOpacity 
-      className="bg-white p-4 rounded-xl mb-3 border border-gray-100 shadow-sm"
+      className="bg-card p-4 rounded-xl mb-3 border border-border shadow-sm"
       onPress={() => router.push(`/sppg/${item.id}`)}
     >
       <View className="flex-row justify-between items-start mb-2">
         <View>
-             <Text className="text-gray-900 font-bold font-plus-jakarta-bold text-base">{item.code}</Text>
-             <View className="bg-blue-50 px-2 py-1 rounded-md self-start mt-1">
-                <Text className="text-blue-600 text-xs font-plus-jakarta-medium">{item.status}</Text>
+             <Text className="text-foreground font-bold font-plus-jakarta-bold text-base">{item.code}</Text>
+             <View className="bg-primary/10 px-2 py-1 rounded-md self-start mt-1">
+                <Text className="text-primary text-xs font-plus-jakarta-medium">{item.status}</Text>
              </View>
         </View>
         <View className="items-end">
-             <Text className="text-gray-900 font-bold text-lg">{item.preparationProgress}%</Text>
-             <Text className="text-gray-500 text-xs">Progress</Text>
+             <Text className="text-foreground font-bold text-lg">{item.preparationProgress}%</Text>
+             <Text className="text-muted-foreground text-xs">Progress</Text>
         </View>
       </View>
       
-      <View className="border-t border-gray-100 my-2 pt-2 space-y-2">
+      <View className="border-t border-border my-2 pt-2 space-y-2">
          <View className="flex-row items-center">
-            <Briefcase size={14} color="#6B7280" />
-            <Text className="text-gray-600 text-sm ml-2 font-plus-jakarta-medium flex-1" numberOfLines={1}>
+            <Briefcase size={14} className="text-muted-foreground" />
+            <Text className="text-muted-foreground text-sm ml-2 font-plus-jakarta-medium flex-1" numberOfLines={1}>
                 {item.investor}
             </Text>
          </View>
          <View className="flex-row items-center">
-            <MapPin size={14} color="#6B7280" />
-            <Text className="text-gray-600 text-sm ml-2 font-plus-jakarta-medium flex-1" numberOfLines={1}>
+            <MapPin size={14} className="text-muted-foreground" />
+            <Text className="text-muted-foreground text-sm ml-2 font-plus-jakarta-medium flex-1" numberOfLines={1}>
                 {item.location}
             </Text>
          </View>
       </View>
 
-      <View className="mt-2 bg-blue-600 py-2 rounded-lg items-center">
-         <Text className="text-white font-bold text-sm">Lihat Detail & Checklist</Text>
+      <View className="mt-2 bg-primary py-2 rounded-lg items-center">
+         <Text className="text-primary-foreground font-bold text-sm">Lihat Detail & Checklist</Text>
       </View>
     </TouchableOpacity>
   );
 
   return (
-    <SafeAreaView className="flex-1 bg-gray-50">
+    <SafeAreaView className="flex-1 bg-background">
       <StatusBar style="dark" />
       
       {/* Header */}
-      <View className="bg-white px-4 py-3 border-b border-gray-100">
-        <Text className="text-xl font-bold text-gray-900 font-plus-jakarta-bold mb-3">Daftar SPPG</Text>
+      <View className="bg-card px-4 py-3 border-b border-border">
+        <Text className="text-xl font-bold text-foreground font-plus-jakarta-bold mb-3">Daftar SPPG</Text>
         
         {/* Search Bar */}
-        <View className="flex-row bg-gray-100 rounded-xl px-3 py-2 items-center mb-3">
-            <Search size={20} color="#9CA3AF" />
+        <View className="flex-row bg-muted rounded-xl px-3 py-2 items-center mb-3">
+            <Search size={20} className="text-muted-foreground" />
             <TextInput 
-                className="flex-1 ml-2 font-plus-jakarta-medium text-gray-900"
+                className="flex-1 ml-2 font-plus-jakarta-medium text-foreground"
                 placeholder="Cari Kode SPPG..."
+                placeholderTextColor="#64748B"
                 value={search}
                 onChangeText={handleSearchChange}
             />
@@ -178,10 +179,10 @@ export default function SPPGListScreen() {
             keyExtractor={item => item}
             renderItem={({ item }) => (
                 <TouchableOpacity 
-                    className={`px-4 py-2 rounded-full mr-2 border ${selectedStatus === item ? 'bg-blue-600 border-blue-600' : 'bg-white border-gray-200'}`}
+                    className={`px-4 py-2 rounded-full mr-2 border ${selectedStatus === item ? 'bg-primary border-primary' : 'bg-card border-border'}`}
                     onPress={() => handleStatusChange(item)}
                 >
-                    <Text className={`font-plus-jakarta-medium text-xs ${selectedStatus === item ? 'text-white' : 'text-gray-600'}`}>
+                    <Text className={`font-plus-jakarta-medium text-xs ${selectedStatus === item ? 'text-primary-foreground' : 'text-muted-foreground'}`}>
                         {item}
                     </Text>
                 </TouchableOpacity>
@@ -199,8 +200,8 @@ export default function SPPGListScreen() {
         refreshing={refreshing}
         onEndReached={loadMore}
         onEndReachedThreshold={0.5}
-        ListFooterComponent={loading && !refreshing ? <ActivityIndicator className="mt-4" /> : null}
-        ListEmptyComponent={!loading && <Text className="text-center text-gray-500 mt-10">Tidak ada data SPPG ditemukan</Text>}
+        ListFooterComponent={loading && !refreshing ? <ActivityIndicator className="mt-4" color="#2563EB" /> : null}
+        ListEmptyComponent={!loading ? <Text className="text-center text-muted-foreground mt-10">Tidak ada data SPPG ditemukan</Text> : null}
       />
     </SafeAreaView>
   );

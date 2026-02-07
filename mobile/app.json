@@ -35,6 +35,14 @@
         {
           "fonts": ["node_modules/@expo-google-fonts/plus-jakarta-sans/PlusJakartaSans_400Regular.ttf"]
         }
+      ],
+      [
+        "expo-build-properties",
+        {
+          "android": {
+            "newArchEnabled": true
+          }
+        }
       ]
     ],
     "experiments": {

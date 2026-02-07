@@ -6,7 +6,7 @@ import { StatusBar } from 'expo-status-bar';
 import { fetchApi } from '@/lib/api';
 import { useAuth } from '@/context/AuthContext';
 import { ActivityIndicator } from 'react-native';
-import { Layers, FileText, CheckCircle, Search, ClipboardCheck, Scroll, Building2 } from 'lucide-react-native';
+import { Layers, FileText, CheckCircle, Search, ClipboardCheck, Scroll, Building2, MapPin } from 'lucide-react-native';
 
 interface DashboardStats {
   totalSPPG: number;
@@ -58,65 +58,64 @@ export default function DashboardScreen() {
 
   // Helper to render card
   const StatusCard = ({ title, count, icon: Icon, color }: { title: string, count: number, icon: any, color: string }) => (
-    <View className="bg-white p-4 rounded-xl border border-gray-100 shadow-sm w-[48%] mb-4">
+    <View className="bg-card p-4 rounded-xl border border-border shadow-sm w-[48%] mb-4">
       <View className={`w-10 h-10 rounded-full items-center justify-center mb-3 ${color}`}>
         <Icon size={20} color="white" />
       </View>
-      <Text className="text-2xl font-bold text-gray-900 mb-1">{count}</Text>
-      <Text className="text-xs text-gray-500 font-plus-jakarta-medium">{title}</Text>
+      <Text className="text-2xl font-bold text-foreground mb-1 font-plus-jakarta-bold">{count}</Text>
+      <Text className="text-xs text-muted-foreground font-plus-jakarta-medium">{title}</Text>
     </View>
   );
 
   return (
-    <SafeAreaView className="flex-1 bg-gray-50">
+    <SafeAreaView className="flex-1 bg-background">
       <StatusBar style="dark" />
       <ScrollView 
-        className="flex-1 px-4 pt-4"
+        className="flex-1 px-5 pt-4"
         refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
       >
         {/* Header */}
-        <View className="mb-6 flex-row justify-between items-center">
+        <View className="mb-8 flex-row justify-between items-center">
           <View>
-            <Text className="text-gray-500 font-plus-jakarta-medium text-sm">Selamat Datang,</Text>
-            <Text className="text-xl font-bold text-gray-900 font-plus-jakarta-bold">{user?.name}</Text>
+            <Text className="text-muted-foreground font-plus-jakarta-medium text-sm">Selamat Datang,</Text>
+            <Text className="text-2xl font-bold text-foreground font-plus-jakarta-bold">{user?.name}</Text>
             {user?.location && (
-                <Text className="text-xs text-blue-600 mt-1">{user.location}</Text>
+                <View className="flex-row items-center mt-1">
+                    <MapPin size={12} className="text-primary mr-1" />
+                    <Text className="text-xs text-primary font-plus-jakarta-bold">{user.location}</Text>
+                </View>
             )}
           </View>
-          <View className="w-10 h-10 bg-gray-200 rounded-full overflow-hidden">
-             {/* Profile Avatar Placeholder */}
-             <View className="flex-1 items-center justify-center bg-blue-100">
-                <Text className="text-blue-600 font-bold">{user?.name?.charAt(0)}</Text>
-             </View>
+          <View className="w-12 h-12 bg-primary/10 rounded-full items-center justify-center border border-primary/20">
+             <Text className="text-primary font-bold text-lg font-plus-jakarta-bold">{user?.name?.charAt(0)}</Text>
           </View>
         </View>
 
         {/* Main Stats Card */}
-        <View className="bg-blue-600 rounded-2xl p-6 mb-6 shadow-md shadow-blue-200">
-          <View className="flex-row justify-between items-start">
+        <View className="bg-primary rounded-2xl p-6 mb-8 shadow-lg shadow-blue-200/50">
+          <View className="flex-row justify-between items-start mb-6">
              <View>
-                <Text className="text-blue-100 font-plus-jakarta-medium text-sm mb-1">Total SPPG Terdaftar</Text>
-                <Text className="text-4xl font-bold text-white mb-4">{stats?.totalSPPG || 0}</Text>
+                <Text className="text-primary-foreground/80 font-plus-jakarta-medium text-sm mb-1">Total SPPG Terdaftar</Text>
+                <Text className="text-5xl font-bold text-primary-foreground font-plus-jakarta-bold">{stats?.totalSPPG || 0}</Text>
              </View>
-             <View className="bg-blue-500 p-2 rounded-lg">
+             <View className="bg-white/20 p-3 rounded-xl backdrop-blur-sm">
                 <Layers color="white" size={24} />
              </View>
           </View>
           
-          <View className="bg-blue-700/50 rounded-xl p-3 flex-row items-center">
+          <View className="bg-black/10 rounded-xl p-4 flex-row items-center backdrop-blur-md">
              <View className="bg-white/20 p-2 rounded-lg mr-3">
-                <ActivityIndicator color="white" style={{display: 'none'}} /> 
-                <CheckCircle size={16} color="white" />
+                <CheckCircle size={18} color="white" />
              </View>
              <View>
-                <Text className="text-blue-100 text-xs">Progress Rata-rata</Text>
-                <Text className="text-white font-bold">{stats?.averageProgress || 0}% Selesai</Text>
+                <Text className="text-primary-foreground/90 text-xs font-plus-jakarta-medium">Progress Rata-rata</Text>
+                <Text className="text-white font-bold text-base font-plus-jakarta-bold">{stats?.averageProgress || 0}% Selesai</Text>
              </View>
           </View>
         </View>
 
         {/* Section Title */}
-        <Text className="text-base font-bold text-gray-900 mb-4 font-plus-jakarta-bold">Ringkasan Status</Text>
+        <Text className="text-lg font-bold text-foreground mb-4 font-plus-jakarta-bold">Ringkasan Status</Text>
 
         {/* Stats Grid */}
         <View className="flex-row flex-wrap justify-between pb-10">
