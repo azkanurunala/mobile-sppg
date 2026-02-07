@@ -2,13 +2,18 @@
 import * as SecureStore from 'expo-secure-store';
 import { Platform } from 'react-native';
 
+// Production URL
+const PROD_API_URL = 'https://sppg-opal.vercel.app/api/mobile';
+
+/*
 const DEV_API_URL = Platform.select({
   android: 'http://10.0.2.2:3000/api/mobile',
   ios: 'http://localhost:3000/api/mobile',
   default: 'http://localhost:3000/api/mobile',
 });
+*/
 
-export const API_URL = DEV_API_URL;
+export const API_URL = PROD_API_URL;
 
 export async function getAccessToken() {
   return await SecureStore.getItemAsync('access_token');

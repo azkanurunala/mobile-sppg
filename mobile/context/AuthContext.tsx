@@ -1,7 +1,7 @@
 
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import * as SecureStore from 'expo-secure-store';
-import { useRouter, useSegments } from 'expo-router';
+import { useRouter, useSegments, useRootNavigationState } from 'expo-router';
 
 import { API_URL } from '@/lib/api';
 
@@ -27,11 +27,13 @@ export function useAuth() {
   return useContext(AuthContext);
 }
 
-function useProtectedRoute(user: User | null, isNavigationReady: boolean) {
+function useProtectedRoute(user: User | null) {
   const segments = useSegments();
   const router = useRouter();
+  const rootNavigationState = useRootNavigationState();
 
   useEffect(() => {
+    const isNavigationReady = rootNavigationState?.key;
     if (!isNavigationReady) return;
 
     const inAuthGroup = segments[0] === 'auth';
@@ -41,13 +43,12 @@ function useProtectedRoute(user: User | null, isNavigationReady: boolean) {
     } else if (user && inAuthGroup) {
       router.replace('/(tabs)');
     }
-  }, [user, segments, isNavigationReady]);
+  }, [user, segments, rootNavigationState?.key]);
 }
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(true);
-  const [isNavigationReady, setIsNavigationReady] = useState(false);
 
   useEffect(() => {
     const loadUser = async () => {
@@ -62,14 +63,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         console.error('Failed to load auth state', e);
       } finally {
         setIsLoading(false);
-        setTimeout(() => setIsNavigationReady(true), 100);
       }
     };
+
 
     loadUser();
   }, []);
 
-  useProtectedRoute(user, isNavigationReady);
+  useProtectedRoute(user);
 
   const signIn = async (accessToken: string, refreshToken: string, newUser: User) => {
     await SecureStore.setItemAsync('access_token', accessToken);

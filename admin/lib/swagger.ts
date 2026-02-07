@@ -9,7 +9,7 @@ export const getApiDocs = async () => {
     },
     servers: [
       {
-        url: 'http://localhost:3000/api/mobile',
+        url: `${process.env.NEXTAUTH_URL}/api/mobile`,
         description: 'Local Development Server',
       },
     ],

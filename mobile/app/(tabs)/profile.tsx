@@ -88,6 +88,25 @@ export default function ProfileScreen() {
       </View>
 
       <ScrollView className="flex-1 px-6 pt-8 -mt-10">
+          <Text className="text-gray-500 font-bold font-plus-jakarta-bold mb-4 text-xs uppercase tracking-wider">Akun</Text>
+          <View className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden mb-6">
+              <TouchableOpacity 
+                className="flex-row items-center justify-between p-4"
+                onPress={() => router.push('/profile/edit')}
+              >
+                  <View className="flex-row items-center">
+                      <View className="w-10 h-10 bg-blue-100 rounded-full items-center justify-center mr-3">
+                          <User size={20} color="#2563EB" />
+                      </View>
+                      <View>
+                          <Text className="text-gray-900 font-bold text-sm font-plus-jakarta-bold">Update Data Diri</Text>
+                          <Text className="text-gray-500 text-xs mt-0.5">Perbarui nama, telepon, dan lokasi</Text>
+                      </View>
+                  </View>
+                  <ChevronRight size={20} color="#9CA3AF" />
+              </TouchableOpacity>
+          </View>
+
           <Text className="text-gray-500 font-bold font-plus-jakarta-bold mb-4 text-xs uppercase tracking-wider">Keamanan</Text>
           
           <View className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden mb-6">
