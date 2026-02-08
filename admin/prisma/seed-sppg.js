@@ -24,8 +24,8 @@ function parseCSVLine(line) {
 
 async function main() {
   // Go up one level from prisma/ dir if needed, or assume running from root
-  // CWD: c:\RunningProjects\mobile-sppg\admin
-  // File: c:\RunningProjects\mobile-sppg\admin\sppg.csv
+  // CWD: c:\RunningProjects\SPPG Mobile\admin
+  // File: c:\RunningProjects\SPPG Mobile\admin\sppg.csv
   const filePath = path.join(process.cwd(), 'sppg.csv');
   console.log(`📂 Checking file at: ${filePath}`);
   

@@ -3,78 +3,129 @@ import React, { useState, useEffect } from 'react';
 import { View, Text, TextInput, TouchableOpacity, ScrollView, Alert, ActivityIndicator } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { StatusBar } from 'expo-status-bar';
-import { ChevronLeft } from 'lucide-react-native';
+import { ChevronLeft, ChevronDown, Save as SaveIcon } from 'lucide-react-native';
+import SelectionModal from '@/components/ui/SelectionModal';
+import ConfirmationModal from '@/components/ui/ConfirmationModal';
 import { useRouter } from 'expo-router';
 import { fetchApi } from '@/lib/api';
 import { useAuth } from '@/context/AuthContext';
 
 export default function EditProfileScreen() {
   const router = useRouter();
-  const { user, signIn } = useAuth();
+  const { user, signIn, refreshUser } = useAuth();
   
   const [formData, setFormData] = useState({
     name: '',
     phoneNumber: '',
     email: '',
+    provinceId: '',
     regencyId: '',
-    // Province logic could be re-added if user needs to select province first, but for update we often just show current
   });
 
   const [loading, setLoading] = useState(false);
   const [initialLoading, setInitialLoading] = useState(true);
-
-  // Lists for selection
+  const [provinces, setProvinces] = useState<{id: string, name: string}[]>([]);
   const [regencies, setRegencies] = useState<{id: string, name: string}[]>([]);
-  // Simplified: In a real app we'd fetch provinces first or current province of user.
-  // For now, let's just allow editing Name and Phone as primary, location might be complex to change if logic binds to Korwil area.
-  // The UI `update-data-form.tsx` has province/city select.
+  const [showProvinceSelect, setShowProvinceSelect] = useState(false);
+  const [showRegencySelect, setShowRegencySelect] = useState(false);
+  
+  // Custom Alert State
+  const [modalVisible, setModalVisible] = useState(false);
+  const [modalConfig, setModalConfig] = useState({
+      title: '',
+      message: '',
+      type: 'info' as 'info' | 'success' | 'danger',
+      onConfirm: () => {},
+      confirmText: 'OK'
+  });
+
+  const showAlert = (title: string, message: string, type: 'info' | 'success' | 'danger' = 'info', onConfirm: () => void = () => setModalVisible(false)) => {
+      setModalConfig({
+          title,
+          message,
+          type,
+          onConfirm: () => {
+              onConfirm();
+              setModalVisible(false);
+          },
+          confirmText: 'OK'
+      });
+      setModalVisible(true);
+  };
 
   useEffect(() => {
-    fetchProfile();
+    fetchProfileAndMasterData();
   }, []);
 
-  const fetchProfile = async () => {
+  useEffect(() => {
+    if (formData.provinceId) {
+        fetchRegencies(formData.provinceId);
+    } else {
+        setRegencies([]);
+    }
+  }, [formData.provinceId]);
+
+  const fetchProfileAndMasterData = async () => {
     try {
-        const data = await fetchApi('/user/me');
+        const [profile, provincesData] = await Promise.all([
+            fetchApi('/user/me'),
+            fetchApi('/wilayah/provinces')
+        ]);
+
         setFormData({
-            name: data.name,
-            phoneNumber: data.phoneNumber,
-            email: data.email,
-            regencyId: data.locationDetail?.regencyId || ''
+            name: profile.name,
+            phoneNumber: profile.phoneNumber.replace('+62', '') || '', // Strip prefix for display
+            email: profile.email,
+            provinceId: profile.locationDetail?.provinceId || '',
+            regencyId: profile.locationDetail?.regencyId || ''
         });
-        
-        // If we want to allow changing location, we need to fetch master data. 
-        // For simplicity in this iteration, we focus on Name/Phone unless user has strict requirement to move regions.
-        // But `update-data-form.tsx` has selectors. Let's assume we can fetch regencies for current province or all.
+        setProvinces(provincesData);
+
+        // If user has province, fetch regencies for it
+        if (profile.locationDetail?.provinceId) {
+             const regenciesData = await fetchApi(`/wilayah/regencies?provinceId=${profile.locationDetail?.provinceId}`);
+             setRegencies(regenciesData);
+        }
+
     } catch (error) {
-        console.error('Failed to fetch profile', error);
+        console.error('Failed to fetch data', error);
+        showAlert('Error', 'Gagal memuat data profil', 'danger');
     } finally {
         setInitialLoading(false);
     }
   };
 
+  const fetchRegencies = async (provinceId: string) => {
+    try {
+        const data = await fetchApi(`/wilayah/regencies?provinceId=${provinceId}`);
+        setRegencies(data);
+    } catch (error) {
+        console.error('Failed to fetch regencies', error);
+    }
+  };
+
   const handleSave = async () => {
+    if (!formData.name || !formData.phoneNumber) {
+        showAlert('Error', 'Nama dan No. Telepon wajib diisi', 'danger');
+        return;
+    }
+
     setLoading(true);
     try {
         await fetchApi('/user/profile', {
             method: 'PUT',
-            body: JSON.stringify(formData)
+            body: JSON.stringify({
+                ...formData,
+                phoneNumber: formData.phoneNumber.startsWith('+62') ? formData.phoneNumber : `+62${formData.phoneNumber}`
+            })
         });
         
-        // Update local context if needed, or just re-fetch on profile page
-        // We should construct a new user object to update context immediately if we want
-        if (user) {
-             const updatedUser = { ...user, name: formData.name, phoneNumber: formData.phoneNumber };
-             // Note: Token doesn't change, but user data in storage does. 
-             // Ideally `signIn` updates user state too.
-             // We can just rely on Profile screen re-fetching.
-        }
-
-        Alert.alert('Sukses', 'Data berhasil diperbarui', [
-            { text: 'OK', onPress: () => router.back() }
-        ]);
+        // Refresh local user context
+        await refreshUser();
+        
+        showAlert('Sukses', 'Data berhasil diperbarui', 'success', () => router.back());
     } catch (error: any) {
-        Alert.alert('Gagal', error.message || 'Gagal memperbarui data');
+        showAlert('Gagal', error.message || 'Gagal memperbarui data', 'danger');
     } finally {
         setLoading(false);
     }
@@ -82,61 +133,114 @@ export default function EditProfileScreen() {
 
   if (initialLoading) {
     return (
-        <View className="flex-1 justify-center items-center">
+        <View className="flex-1 justify-center items-center bg-white">
             <ActivityIndicator size="large" color="#2563EB" />
         </View>
     );
   }
 
+  const selectedProvinceName = provinces.find(p => p.id === formData.provinceId)?.name || 'Pilih Provinsi';
+  const selectedRegencyName = regencies.find(r => r.id === formData.regencyId)?.name || 'Pilih Kota/Kabupaten';
+
   return (
     <SafeAreaView className="flex-1 bg-white">
       <StatusBar style="dark" />
       
-      <View className="flex-row items-center px-4 py-3 border-b border-gray-100">
-        <TouchableOpacity onPress={() => router.back()} className="p-2 mr-2">
+
+
+      <View className="flex-row items-center px-6 py-4 border-b border-gray-50">
+        <TouchableOpacity onPress={() => router.back()} className="w-10 h-10 bg-gray-50 rounded-full items-center justify-center mr-4">
             <ChevronLeft size={24} color="#1F2937" />
         </TouchableOpacity>
-        <Text className="text-lg font-bold text-gray-900 font-plus-jakarta-extrabold">Update Data</Text>
+        <Text className="text-xl font-bold text-gray-900 font-plus-jakarta-extrabold">Update Data</Text>
       </View>
 
-      <ScrollView className="flex-1 px-6 pt-6">
-        <View className="space-y-4">
-             <View>
-                <Text className="text-gray-700 mb-2 font-plus-jakarta-semibold">Nama Lengkap</Text>
-                <TextInput
-                    className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 font-plus-jakarta-semibold"
-                    value={formData.name}
-                    onChangeText={(text) => setFormData({...formData, name: text})}
-                />
+      <ConfirmationModal
+        visible={modalVisible}
+        title={modalConfig.title}
+        message={modalConfig.message}
+        onConfirm={modalConfig.onConfirm}
+        confirmText={modalConfig.confirmText}
+        type={modalConfig.type}
+      />
+
+      <ScrollView className="flex-1 px-6 pt-8">
+        <View className="space-y-6 pb-10">
+             {/* Nama */}
+             <View className='mb-4'>
+                <Text className="text-gray-500 mb-2 font-plus-jakarta-semibold text-xs uppercase tracking-wide">Nama</Text>
+                <View className="w-full bg-white border border-gray-200 rounded-2xl  font-plus-jakarta-bold text-gray-900 focus:border-blue-500">
+                    <TextInput
+                        className="flex-1 font-plus-jakarta-bold text-gray-900 text-base px-4 py-3"
+                        value={formData.name}
+                        placeholder="Masukkan nama lengkap"
+                        placeholderTextColor="#9CA3AF"
+                        onChangeText={(text) => setFormData({...formData, name: text})}
+                    />
+                </View>
             </View>
 
-             <View>
-                <Text className="text-gray-700 mb-2 font-plus-jakarta-semibold">No. Handphone</Text>
-                <TextInput
-                    className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 font-plus-jakarta-semibold"
-                    value={formData.phoneNumber}
-                    keyboardType="phone-pad"
-                    onChangeText={(text) => setFormData({...formData, phoneNumber: text})}
-                />
+             {/* No Telp with Prefix */}
+             <View className='mb-4'>
+                <Text className="text-gray-500 mb-2 font-plus-jakarta-semibold text-xs uppercase tracking-wide">No Telp</Text>
+                <View className="flex-row items-center w-full bg-white border border-gray-200 rounded-2xl overflow-hidden focus:border-blue-500">
+                    <TextInput
+                        className="flex-1 px-4 py-3 font-plus-jakarta-bold text-gray-900 text-base"
+                        value={formData.phoneNumber}
+                        keyboardType="phone-pad"
+                        placeholder="812xxxxxxx"
+                        placeholderTextColor="#9CA3AF"
+                        onChangeText={(text) => setFormData({...formData, phoneNumber: text})}
+                    />
+                </View>
             </View>
 
-            {/* Location fields could be added here similar to Register if needed */}
-            
-            <TouchableOpacity 
-                className="w-full bg-blue-600 rounded-2xl py-4 mt-6 shadow-sm shadow-blue-200"
-                onPress={handleSave}
-                disabled={loading}
-            >
-                {loading ? (
-                    <ActivityIndicator color="white" />
-                ) : (
-                    <Text className="text-white text-center font-bold font-plus-jakarta-extrabold text-base">
-                        Simpan Data
+            {/* Provinsi */}
+            <View className='mb-4'>
+                <Text className="text-gray-500 mb-2 font-plus-jakarta-semibold text-xs uppercase tracking-wide">Provinsi</Text>
+                <View 
+                    className="flex-row items-center justify-between w-full bg-gray-100 border border-gray-200 rounded-2xl px-4 py-4"
+                >
+                    <Text className="flex-1 font-plus-jakarta-bold text-base text-gray-500">
+                        {selectedProvinceName}
                     </Text>
-                )}
-            </TouchableOpacity>
+                </View>
+            </View>
+
+            {/* Kota/Kabupaten */}
+            <View>
+                <Text className="text-gray-500 mb-2 font-plus-jakarta-semibold text-xs uppercase tracking-wide">Kota/Kabupaten</Text>
+                <View 
+                    className="flex-row items-center justify-between w-full bg-gray-100 border border-gray-200 rounded-2xl px-4 py-4"
+                >
+                    <Text className="flex-1 font-plus-jakarta-bold text-base text-gray-500">
+                        {selectedRegencyName}
+                    </Text>
+                </View>
+            </View>
         </View>
       </ScrollView>
+
+      {/* Bottom Button */}
+      <View className="p-6 border-t border-gray-50 bg-white shadow-lg shadow-gray-100">
+        <TouchableOpacity 
+            className="w-full bg-blue-600 rounded-full py-4 items-center justify-center shadow-lg shadow-blue-200 active:scale-95"
+            onPress={handleSave}
+            disabled={loading}
+        >
+            {loading ? (
+                <ActivityIndicator color="white" />
+            ) : (
+                <View className="flex-row items-center">
+                    <SaveIcon size={20} color="white" style={{ marginRight: 8 }} />
+                    <Text className="text-white text-center font-bold font-plus-jakarta-extrabold text-lg">
+                        Simpan Data
+                    </Text>
+                </View>
+            )}
+        </TouchableOpacity>
+      </View>
     </SafeAreaView>
   );
 }
+

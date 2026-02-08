@@ -1,11 +1,11 @@
 
-import React, { useState, useEffect } from 'react';
-import { View, Text, ScrollView, TouchableOpacity, ActivityIndicator, Alert } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import React, { useState, useEffect, useRef } from 'react';
+import { View, Text, ScrollView, TouchableOpacity, ActivityIndicator } from 'react-native';
 import { StatusBar } from 'expo-status-bar';
 import { ChevronLeft, Info, Check, X, Trash2 } from 'lucide-react-native';
 import { useLocalSearchParams, useRouter, useNavigation } from 'expo-router';
 import { fetchApi } from '@/lib/api';
+import ConfirmationModal from '@/components/ui/ConfirmationModal';
 
 interface ChecklistItem {
   masterItemId: string;
@@ -39,7 +39,12 @@ export default function ValidationScreen() {
   const [initialItems, setInitialItems] = useState<ChecklistItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const isSavingRef = useRef(false); // Ref to track saving state synchronously
   const [summary, setSummary] = useState<any>(null);
+
+  // Modal State
+  const [showConfirmModal, setShowConfirmModal] = useState(false);
+  const [pendingAction, setPendingAction] = useState<any>(null);
 
   const fetchChecklist = async () => {
     try {
@@ -69,7 +74,7 @@ export default function ValidationScreen() {
     const hasUnsavedChanges = currentState !== initialState;
 
     const beforeRemoveListener = navigation.addListener('beforeRemove', (e) => {
-        if (!hasUnsavedChanges || saving) {
+        if (!hasUnsavedChanges || isSavingRef.current) {
             // If we don't have unsaved changes, or we are currently saving, then we don't need to do anything
             return;
         }
@@ -77,27 +82,15 @@ export default function ValidationScreen() {
         // Prevent default behavior of leaving the screen
         e.preventDefault();
 
-        // Prompt the user before leaving the screen
-        Alert.alert(
-            'Data Belum Disimpan',
-            'Anda memiliki perubahan yang belum disimpan. Data yang telah terisi akan hilang. Yakin ingin kembali?',
-            [
-                { text: 'Batal', style: 'cancel', onPress: () => {} },
-                {
-                    text: 'Ya, Kembali',
-                    style: 'destructive',
-                    // If the user confirmed, then we dispatch the action we blocked earlier
-                    // This will continue the action that had triggered the removal of the screen
-                    onPress: () => navigation.dispatch(e.data.action),
-                },
-            ]
-        );
+        // Save the pending action and show custom modal
+        setPendingAction(e.data.action);
+        setShowConfirmModal(true);
     });
 
     return () => {
         navigation.removeListener('beforeRemove', beforeRemoveListener);
     };
-  }, [items, initialItems, navigation, saving]);
+  }, [items, initialItems, navigation]);
 
   const toggleItem = (masterItemId: string, status: boolean) => {
     setItems(prevItems => 
@@ -117,6 +110,7 @@ export default function ValidationScreen() {
 
   const handleSave = async () => {
     setSaving(true);
+    isSavingRef.current = true; // Mark as saving synchronously
     try {
         await fetchApi(`/sppg/${id}/checklist`, {
             method: 'POST',
@@ -134,10 +128,21 @@ export default function ValidationScreen() {
         // Navigate back immediately
         router.back();
     } catch (error: any) {
-        Alert.alert('Gagal', error.message || 'Gagal menyimpan data');
+        isSavingRef.current = false; // Reset if failed
+        // Replaced Alert with logging or toast (for now console, could be another modal)
+        console.error('Failed to save:', error);
+        // Alert.alert('Gagal', error.message || 'Gagal menyimpan data');
     } finally {
         setSaving(false);
+        // Note: isSavingRef stays true if successful to prevent navigation block during exit transition
     }
+  };
+
+  const handleConfirmLeave = () => {
+      setShowConfirmModal(false);
+      if (pendingAction) {
+          navigation.dispatch(pendingAction);
+      }
   };
 
   if (loading) {
@@ -168,11 +173,7 @@ export default function ValidationScreen() {
                 <Text className="text-white text-lg font-plus-jakarta-extrabold">Validasi Proses Bangun</Text>
                 <Text className="text-blue-100 text-xs font-plus-jakarta-semibold">{items.length > 0 ? `SPPG-${id.toString()}` : 'Detail'}</Text> 
             </View>
-
         </View>
-
-        {/* Info Banner */}
-
       </View>
 
       <ScrollView 
@@ -288,6 +289,17 @@ export default function ValidationScreen() {
             )}
          </TouchableOpacity>
       </View>
+
+      <ConfirmationModal
+        visible={showConfirmModal}
+        title="Data Belum Disimpan"
+        message="Anda memiliki perubahan yang belum disimpan. Data yang telah terisi akan hilang. Yakin ingin kembali?"
+        confirmText="Ya, Kembali"
+        cancelText="Batal"
+        onConfirm={handleConfirmLeave}
+        onCancel={() => setShowConfirmModal(false)}
+        type="danger"
+      />
     </View>
   );
 }

@@ -1,7 +1,6 @@
 
 import React, { useState, useEffect } from 'react';
 import { View, Text, ScrollView, TouchableOpacity, ActivityIndicator, Image, Alert, Dimensions } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
 import { StatusBar } from 'expo-status-bar';
 import { 
   ChevronLeft, 
@@ -16,9 +15,10 @@ import {
   Copy, 
   CheckCircle, 
   XCircle,
-  FileText
+  FileText,
+  User
 } from 'lucide-react-native';
-import { useLocalSearchParams, useRouter } from 'expo-router';
+import { useLocalSearchParams, useRouter, useFocusEffect } from 'expo-router';
 import { fetchApi } from '@/lib/api';
 import * as Clipboard from 'expo-clipboard';
 
@@ -45,6 +45,8 @@ export default function SPPGDetailScreen() {
 
   const fetchData = async () => {
     try {
+        // Keep loading true only on first load if we want silent updates, 
+        // but for now let's keep it simple or maybe just show a spinner if detail is null
         const [detailRes, checklistRes] = await Promise.all([
             fetchApi(`/sppg/${id}`),
             fetchApi(`/sppg/${id}/checklist`)
@@ -59,9 +61,11 @@ export default function SPPGDetailScreen() {
     }
   };
 
-  useEffect(() => {
-    fetchData();
-  }, [id]);
+  useFocusEffect(
+    React.useCallback(() => {
+      fetchData();
+    }, [id])
+  );
 
 
 
@@ -113,58 +117,63 @@ export default function SPPGDetailScreen() {
             </View>
             
             <Text className="text-white text-2xl font-bold font-plus-jakarta-extrabold mb-4">SPPG {detail.code}</Text>
-            <Text className="text-white text-2xl font-bold font-plus-jakarta-extrabold mb-4">{detail.location?.village+', ' || detail.snapshot?.village+', ' || ''}</Text>
+            <View className="flex-row items-center mb-4">
+                <MapPin size={16} color="white" />
+                <Text className="text-white text-sm font-plus-jakarta-semibold ml-1">
+                    {(detail.location?.village || detail.snapshot?.village || '-')}, Kec. {(detail.location?.district || detail.snapshot?.district || '-')}
+                </Text>
+            </View>
         </View>
 
         {/* Floating Info Card */}
         <View className="mx-5 -mt-20 bg-white rounded-3xl p-5 shadow-lg shadow-blue-900/10 mb-6">
             <View className="flex-row mb-6">
                 <View className="flex-1 space-y-4">
-                    <View>
+                    <View className='mb-4'>
                         <View className="flex-row items-center mb-1">
                             <MapPin size={12} color="#9CA3AF" className="mr-1" />
-                            <Text className="text-gray-400 text-[10px] font-bold font-plus-jakarta-extrabold uppercase">Provinsi</Text>
+                            <Text className="ml-1 text-gray-400 text-xs font-bold font-plus-jakarta-extrabold uppercase">Provinsi</Text>
                         </View>
-                        <Text className="text-gray-900 font-bold font-plus-jakarta-extrabold text-sm">
+                        <Text className="text-gray-900 font-bold font-plus-jakarta-extrabold text-base">
                             {detail.location?.province || detail.snapshot?.province || '-'}
                         </Text>
                     </View>
-                    <View>
+                    <View className='mb-4'>
                          <View className="flex-row items-center mb-1">
                             <MapPin size={12} color="#9CA3AF" className="mr-1" />
-                            <Text className="text-gray-400 text-[10px] font-bold font-plus-jakarta-extrabold uppercase">Kecamatan</Text>
+                            <Text className="ml-1 text-gray-400 text-xs font-bold font-plus-jakarta-extrabold uppercase">Kecamatan</Text>
                         </View>
-                        <Text className="text-gray-900 font-bold font-plus-jakarta-extrabold text-sm">
+                        <Text className="text-gray-900 font-bold font-plus-jakarta-extrabold text-base">
                              {detail.location?.district || detail.snapshot?.district || '-'}
                         </Text>
                     </View>
                      <View>
                         <View className="flex-row items-center mb-1">
                             <FileText size={12} color="#9CA3AF" className="mr-1" />
-                            <Text className="text-gray-400 text-[10px] font-bold font-plus-jakarta-extrabold uppercase">Kode Pos</Text>
+                            <Text className="ml-1 text-gray-400 text-xs font-bold font-plus-jakarta-extrabold uppercase">Kode Pos</Text>
                         </View>
-                        <Text className="text-gray-900 font-bold font-plus-jakarta-extrabold text-sm">
+                        <Text className="text-gray-900 font-bold font-plus-jakarta-extrabold text-base">
                              {detail.postalCode || '97511'}
                         </Text>
                     </View>
                 </View>
 
                 <View className="flex-1 space-y-4 pl-4 border-l border-gray-100">
-                     <View>
+                     <View className='mb-4'>
                         <View className="flex-row items-center mb-1">
                             <Building2 size={12} color="#9CA3AF" className="mr-1" />
-                            <Text className="text-gray-400 text-[10px] font-bold font-plus-jakarta-extrabold uppercase">Kab/Kota</Text>
+                            <Text className="text-gray-400 text-xs font-bold font-plus-jakarta-extrabold uppercase ml-1">Kabupaten/Kota</Text>
                         </View>
-                        <Text className="text-gray-900 font-bold font-plus-jakarta-extrabold text-sm">
+                        <Text className="text-gray-900 font-bold font-plus-jakarta-extrabold text-base">
                              {detail.location?.regency || detail.snapshot?.regency || '-'}
                         </Text>
                     </View>
                     <View>
                         <View className="flex-row items-center mb-1">
                             <MapPin size={12} color="#9CA3AF" className="mr-1" />
-                            <Text className="text-gray-400 text-[10px] font-bold font-plus-jakarta-extrabold uppercase">Desa</Text>
+                            <Text className="ml-1 text-gray-400 text-xs font-bold font-plus-jakarta-extrabold uppercase">Desa/Kelurahan</Text>
                         </View>
-                        <Text className="text-gray-900 font-bold font-plus-jakarta-extrabold text-sm">
+                        <Text className="text-gray-900 font-bold font-plus-jakarta-extrabold text-base">
                              {detail.location?.village || detail.snapshot?.village || '-'}
                         </Text>
                     </View>
@@ -174,20 +183,20 @@ export default function SPPGDetailScreen() {
             {/* Geo Coordinates */}
             <View className="bg-gray-50 rounded-2xl p-4 flex-row justify-between items-center">
                 <View>
-                    <Text className="text-gray-400 text-[10px] font-bold font-plus-jakarta-extrabold uppercase mb-2">Koordinat Geografis</Text>
+                    <Text className="text-gray-400 text-xs font-bold font-plus-jakarta-extrabold uppercase mb-2">Koordinat Geografis</Text>
                     <View className="flex-row space-x-6">
-                        <View>
-                            <Text className="text-gray-400 text-[10px] font-bold mb-0.5">LAT</Text>
-                            <Text className="text-gray-900 font-bold text-sm font-plus-jakarta-extrabold">{detail.latitude || '-3.321456'}</Text>
+                        <View className='mr-4'>
+                            <Text className="text-gray-400 text-xs font-bold mb-0.5">LAT</Text>
+                            <Text className="text-gray-900 font-bold text-base font-plus-jakarta-extrabold">{detail.latitude || '-3.321456'}</Text>
                         </View>
                         <View>
-                            <Text className="text-gray-400 text-[10px] font-bold mb-0.5">LONG</Text>
-                            <Text className="text-gray-900 font-bold text-sm font-plus-jakarta-extrabold">{detail.longitude || '128.987654'}</Text>
+                            <Text className="text-gray-400 text-xs font-bold mb-0.5">LONG</Text>
+                            <Text className="text-gray-900 font-bold text-base font-plus-jakarta-extrabold">{detail.longitude || '128.987654'}</Text>
                         </View>
                     </View>
                 </View>
                 <TouchableOpacity className="w-12 h-12 bg-blue-600 rounded-2xl items-center justify-center shadow-md shadow-blue-300">
-                    <MapIcon size={24} color="white" fill="white" />
+                    <MapPin size={24} color="white" fill="white" />
                 </TouchableOpacity>
             </View>
         </View>
@@ -198,13 +207,13 @@ export default function SPPGDetailScreen() {
                 className={`flex-1 py-3 rounded-full items-center ${activeTab === 'checklist' ? 'bg-orange-500 shadow-md' : 'bg-transparent'}`}
                 onPress={() => setActiveTab('checklist')}
             >
-                <Text className={`font-bold font-plus-jakarta-extrabold ${activeTab === 'checklist' ? 'text-white' : 'text-gray-400'}`}>Checklist</Text>
+                <Text className={`font-bold font-plus-jakarta-extrabold text-sm ${activeTab === 'checklist' ? 'text-white' : 'text-gray-400'}`}>Checklist</Text>
             </TouchableOpacity>
             <TouchableOpacity 
                 className={`flex-1 py-3 rounded-full items-center ${activeTab === 'investor' ? 'bg-orange-500 shadow-md' : 'bg-transparent'}`}
                 onPress={() => setActiveTab('investor')}
             >
-                <Text className={`font-bold font-plus-jakarta-extrabold ${activeTab === 'investor' ? 'text-white' : 'text-gray-400'}`}>Investor</Text>
+                <Text className={`font-bold font-plus-jakarta-extrabold text-sm ${activeTab === 'investor' ? 'text-white' : 'text-gray-400'}`}>Investor</Text>
             </TouchableOpacity>
         </View>
 
@@ -221,7 +230,7 @@ export default function SPPGDetailScreen() {
                     
                     <View className="space-y-4">
                         {checklistItems.map((item) => (
-                             <View key={item.masterItemId} className="bg-gray-50 p-4 rounded-xl flex-row items-center justify-between">
+                             <View key={item.masterItemId} className="bg-gray-50 p-3 rounded-xl flex-row items-center justify-between mb-2">
                                 <View className="flex-row items-center flex-1 mr-2">
                                     <StatusIcon isCompleted={item.isCompleted} />
                                     <Text className="text-gray-900 font-bold font-plus-jakarta-extrabold text-sm ml-3 flex-1">
@@ -246,12 +255,23 @@ export default function SPPGDetailScreen() {
                         <>
                              {/* Investor Card */}
                              <View className="flex-row items-center mb-8">
-                                <View className="w-16 h-16 bg-blue-100 rounded-2xl items-center justify-center mr-4">
-                                    <Text className="text-blue-600 font-bold text-xl">PT</Text>
+                                <View className={`w-16 h-16 ${detail.investor.type === 'Individu' ? 'bg-orange-100' : 'bg-blue-100'} rounded-2xl items-center justify-center mr-4`}>
+                                    {detail.investor.type === 'Individu' ? (
+                                        <User size={32} color="#F97316" />
+                                    ) : (
+                                        <Text className="text-blue-600 font-bold text-xl">PT</Text>
+                                    )}
                                 </View>
                                 <View>
-                                    <Text className="text-gray-400 text-xs font-bold mb-1">Nama Perusahaan</Text>
+                                    <Text className="text-gray-400 text-xs font-bold mb-1">
+                                        {detail.investor.type === 'Individu' ? 'Nama Investor' : 'Nama Perusahaan'}
+                                    </Text>
                                     <Text className="text-gray-900 font-bold text-lg font-plus-jakarta-extrabold w-48">{detail.investor.name}</Text>
+                                    {detail.investor.type === 'Individu' && (
+                                        <View className="bg-orange-100 px-2 py-0.5 rounded-md self-start mt-1">
+                                            <Text className="text-orange-700 text-[10px] font-bold">Individu</Text>
+                                        </View>
+                                    )}
                                 </View>
                              </View>
 
@@ -260,7 +280,7 @@ export default function SPPGDetailScreen() {
                                 <View className="bg-gray-50 p-4 rounded-2xl flex-row items-center justify-between">
                                     <View className="flex-row items-center">
                                         <Mail size={18} color="#6B7280" className="mr-3" />
-                                        <View>
+                                        <View className="ml-2">
                                             <Text className="text-gray-400 text-[10px] font-bold mb-0.5">Email Kontak</Text>
                                             <Text className="text-gray-900 font-bold text-sm font-plus-jakarta-extrabold">{detail.investor.email || '-'}</Text>
                                         </View>
@@ -276,7 +296,7 @@ export default function SPPGDetailScreen() {
                                  <View className="bg-gray-50 p-4 rounded-2xl flex-row items-center justify-between">
                                     <View className="flex-row items-center">
                                         <Building2 size={18} color="#6B7280" className="mr-3" />
-                                        <View>
+                                        <View className="ml-2">
                                             <Text className="text-gray-400 text-[10px] font-bold mb-0.5">Kode Investor</Text>
                                             <Text className="text-gray-900 font-bold text-sm font-plus-jakarta-extrabold">{detail.investor.code || '-'}</Text>
                                         </View>

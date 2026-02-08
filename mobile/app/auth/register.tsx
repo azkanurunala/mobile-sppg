@@ -1,91 +1,14 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, TextInput, TouchableOpacity, ScrollView, Alert, ActivityIndicator, KeyboardAvoidingView, Platform, Modal } from 'react-native';
+import { View, Text, TextInput, TouchableOpacity, ScrollView, Alert, ActivityIndicator, KeyboardAvoidingView, Platform } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { StatusBar } from 'expo-status-bar';
-import { Eye, EyeOff, User, Phone, MapPin, Building, Lock, ArrowRight, UserPlus, ChevronDown, Search, X } from 'lucide-react-native';
+import { Eye, EyeOff, User, Phone, MapPin, Building, Lock, ArrowRight, UserPlus, ChevronDown, Search, X, ChevronLeft } from 'lucide-react-native';
 import { useRouter } from 'expo-router';
 import { fetchApi } from '@/lib/api';
 
 // Reusable Selection Modal Component
-const SelectionModal = ({ 
-  visible, 
-  items, 
-  onSelect, 
-  onClose, 
-  title 
-}: {
-  visible: boolean;
-  items: {id: string; name: string}[];
-  onSelect: (id: string) => void;
-  onClose: () => void;
-  title: string;
-}) => {
-  const [searchQuery, setSearchQuery] = useState('');
-  
-  // Reset search query when modal opens
-  useEffect(() => {
-    if (visible) setSearchQuery('');
-  }, [visible]);
-
-  if (!visible) return null;
-
-  const filteredItems = items.filter(item => 
-    item.name.toLowerCase().includes(searchQuery.toLowerCase())
-  );
-
-  return (
-    <Modal visible={visible} transparent animationType="fade" onRequestClose={onClose}>
-        <View className="flex-1 bg-black/50 justify-center px-6 py-20">
-            <View className="bg-white rounded-xl flex-1 overflow-hidden">
-                <View className="p-4 border-b border-gray-100">
-                    <View className="flex-row justify-between items-center mb-4">
-                        <Text className="font-bold text-lg font-plus-jakarta-extrabold">{title}</Text>
-                        <TouchableOpacity onPress={onClose}>
-                            <X size={24} color="#4B5563" />
-                        </TouchableOpacity>
-                    </View>
-                    {/* Search Input */}
-                    <View className="flex-row items-center bg-gray-50 border border-gray-200 rounded-lg px-3 py-2">
-                        <Search size={20} color="#9CA3AF" className="mr-2" />
-                        <TextInput 
-                            className="flex-1 font-plus-jakarta-medium text-gray-900 py-2 pl-4"
-                            placeholder="Cari..."
-                            value={searchQuery}
-                            onChangeText={setSearchQuery}
-                        />
-                        {searchQuery.length > 0 && (
-                            <TouchableOpacity onPress={() => setSearchQuery('')}>
-                                <X size={16} color="#9CA3AF" />
-                            </TouchableOpacity>
-                        )}
-                    </View>
-                </View>
-                
-                <ScrollView className="flex-1 px-4">
-                    {filteredItems.length === 0 ? (
-                        <View className="py-8 items-center">
-                            <Text className="text-gray-500 text-center font-plus-jakarta-medium">Tidak ditemukan</Text>
-                        </View>
-                    ) : (
-                        filteredItems.map(item => (
-                            <TouchableOpacity 
-                                key={item.id} 
-                                className="py-3 border-b border-gray-100"
-                                onPress={() => {
-                                    onSelect(item.id);
-                                    onClose();
-                                }}
-                            >
-                                <Text className="text-gray-800 font-plus-jakarta-semibold">{item.name}</Text>
-                            </TouchableOpacity>
-                        ))
-                    )}
-                </ScrollView>
-            </View>
-        </View>
-    </Modal>
-  );
-};
+import SelectionModal from '@/components/ui/SelectionModal';
+import ConfirmationModal from '@/components/ui/ConfirmationModal';
 
 export default function RegisterScreen() {
   const router = useRouter();
@@ -94,8 +17,10 @@ export default function RegisterScreen() {
     phoneNumber: '',
     password: '',
     confirmPassword: '',
-    provinceId: '',
-    regencyId: '',
+    locationDetail: { // Changed to nested object
+      provinceId: '',
+      regencyId: '',
+    },
     nik: '', // New field
     role: 'KORWIL' // Defaulting to KORWIL for this app context
   });
@@ -110,17 +35,38 @@ export default function RegisterScreen() {
   const [showProvinceSelect, setShowProvinceSelect] = useState(false);
   const [showRegencySelect, setShowRegencySelect] = useState(false);
 
+  // State for ConfirmationModal
+  const [modalVisible, setModalVisible] = useState(false);
+  const [modalConfig, setModalConfig] = useState({
+    title: '',
+    message: '',
+    onConfirm: () => {},
+    confirmText: 'OK',
+    type: 'info' as 'info' | 'success' | 'danger',
+  });
+
+  const showAlert = (title: string, message: string, type: 'info' | 'success' | 'danger', onConfirm?: () => void) => {
+    setModalConfig({
+      title,
+      message,
+      onConfirm: onConfirm || (() => setModalVisible(false)),
+      confirmText: 'OK',
+      type,
+    });
+    setModalVisible(true);
+  };
+
   useEffect(() => {
     fetchProvinces();
   }, []);
 
   useEffect(() => {
-    if (formData.provinceId) {
-        fetchRegencies(formData.provinceId);
+    if (formData.locationDetail.provinceId) {
+        fetchRegencies(formData.locationDetail.provinceId);
     } else {
         setRegencies([]);
     }
-  }, [formData.provinceId]);
+  }, [formData.locationDetail.provinceId]);
 
   const fetchProvinces = async () => {
     try {
@@ -128,6 +74,7 @@ export default function RegisterScreen() {
         setProvinces(data);
     } catch (error) {
         console.error('Failed to fetch provinces', error);
+        showAlert('Error', 'Gagal memuat daftar provinsi.', 'danger');
     }
   };
 
@@ -137,17 +84,18 @@ export default function RegisterScreen() {
         setRegencies(data);
     } catch (error) {
         console.error('Failed to fetch regencies', error);
+        showAlert('Error', 'Gagal memuat daftar kota/kabupaten.', 'danger');
     }
   };
 
   const handleRegister = async () => {
-    if (!formData.name || !formData.phoneNumber || !formData.password || !formData.provinceId || !formData.regencyId || !formData.nik) {
-        Alert.alert('Error', 'Mohon lengkapi semua data termasuk NIK');
+    if (!formData.name || !formData.phoneNumber || !formData.password || !formData.locationDetail.provinceId || !formData.locationDetail.regencyId || !formData.nik) {
+        showAlert('Error', 'Mohon lengkapi semua data termasuk NIK', 'danger');
         return;
     }
 
     if (formData.password !== formData.confirmPassword) {
-        Alert.alert('Error', 'Konfirmasi kata sandi tidak cocok');
+        showAlert('Error', 'Konfirmasi kata sandi tidak cocok', 'danger');
         return;
     }
 
@@ -155,21 +103,28 @@ export default function RegisterScreen() {
     try {
         await fetchApi('/auth/register', {
             method: 'POST',
-            body: JSON.stringify(formData)
+            body: JSON.stringify({
+              name: formData.name,
+              phoneNumber: formData.phoneNumber,
+              password: formData.password,
+              nik: formData.nik,
+              provinceId: formData.locationDetail.provinceId, // Flatten for API
+              regencyId: formData.locationDetail.regencyId,   // Flatten for API
+              role: formData.role
+            })
         });
-
-        Alert.alert('Sukses', 'Registrasi berhasil. Silakan login.', [
-            { text: 'OK', onPress: () => router.replace('/auth/login') }
-        ]);
+        
+        showAlert('Sukses', 'Registrasi berhasil. Silakan login.', 'success', () => router.replace('/auth/login'));
     } catch (error: any) {
-        Alert.alert('Registrasi Gagal', error.message || 'Terjadi kesalahan. NIK mungkin sudah terdaftar.');
+        // console.error(error);
+        showAlert('Registrasi Gagal', error.message || 'Terjadi kesalahan. NIK mungkin sudah terdaftar.', 'danger');
     } finally {
         setIsLoading(false);
     }
   };
 
-  const selectedProvinceName = provinces.find(p => p.id === formData.provinceId)?.name || 'Pilih Provinsi';
-  const selectedRegencyName = regencies.find(r => r.id === formData.regencyId)?.name || 'Pilih Kota/Kabupaten';
+  const selectedProvinceName = provinces.find(p => p.id === formData.locationDetail.provinceId)?.name || 'Pilih Provinsi';
+  const selectedRegencyName = regencies.find(r => r.id === formData.locationDetail.regencyId)?.name || 'Pilih Kota/Kabupaten';
 
   return (
     <SafeAreaView className="flex-1 bg-white">
@@ -178,7 +133,7 @@ export default function RegisterScreen() {
       <SelectionModal 
         visible={showProvinceSelect}
         items={provinces}
-        onSelect={(id) => setFormData({...formData, provinceId: id, regencyId: ''})}
+        onSelect={(id) => setFormData({...formData, locationDetail: { ...formData.locationDetail, provinceId: id, regencyId: ''}})}
         onClose={() => setShowProvinceSelect(false)}
         title="Pilih Provinsi"
       />
@@ -186,16 +141,31 @@ export default function RegisterScreen() {
       <SelectionModal 
         visible={showRegencySelect}
         items={regencies}
-        onSelect={(id) => setFormData({...formData, regencyId: id})}
+        onSelect={(id) => setFormData({...formData, locationDetail: { ...formData.locationDetail, regencyId: id}})}
         onClose={() => setShowRegencySelect(false)}
         title="Pilih Kota/Kabupaten"
+      />
+
+      <ConfirmationModal
+        visible={modalVisible}
+        title={modalConfig.title}
+        message={modalConfig.message}
+        onConfirm={modalConfig.onConfirm}
+        confirmText={modalConfig.confirmText}
+        type={modalConfig.type}
       />
 
       <KeyboardAvoidingView 
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'} 
         className="flex-1"
       >
-        <ScrollView className="flex-1 px-6" contentContainerStyle={{ paddingBottom: 40, paddingTop: 20 }}>
+        <View className="flex-row items-center px-6 py-4 border-b border-gray-50">
+            <TouchableOpacity onPress={() => router.back()} className="w-10 h-10 bg-gray-50 rounded-full items-center justify-center mr-4">
+                <ChevronLeft size={24} color="#1F2937" />
+            </TouchableOpacity>
+            <Text className="text-xl font-bold text-gray-900 font-plus-jakarta-extrabold">Buat Akun Baru</Text>
+        </View>
+        <ScrollView className="flex-1 px-6 pt-8" contentContainerStyle={{ paddingBottom: 40 }}>
             {/* Header Section */}
             <View className="items-center mb-8">
                 <View className="w-20 h-20 bg-blue-600 rounded-2xl items-center justify-center mb-4 shadow-lg shadow-blue-200">
@@ -260,7 +230,7 @@ export default function RegisterScreen() {
                         onPress={() => setShowProvinceSelect(true)}
                     >
                         <MapPin size={20} color="#9CA3AF" className="mr-3" />
-                        <Text className={`flex-1 font-plus-jakarta-medium py-2 pl-4 ${formData.provinceId ? 'text-gray-900' : 'text-gray-400'}`}>
+                        <Text className={`flex-1 font-plus-jakarta-medium py-2 pl-4 ${formData.locationDetail.provinceId ? 'text-gray-900' : 'text-gray-400'}`}>
                             {selectedProvinceName}
                         </Text>
                         <ChevronDown size={20} color="#9CA3AF" />
@@ -272,15 +242,16 @@ export default function RegisterScreen() {
                     <TouchableOpacity 
                         className="flex-row items-center w-full bg-white border border-gray-200 rounded-xl px-4 py-2"
                         onPress={() => {
-                            if (!formData.provinceId) {
-                                Alert.alert('Info', 'Pilih Provinsi terlebih dahulu');
-                                return;
+                            // Open regency modal only if province is selected
+                            if (formData.locationDetail.provinceId) {
+                                setShowRegencySelect(true);
+                            } else {
+                                showAlert('Info', 'Pilih Provinsi terlebih dahulu', 'info');
                             }
-                            setShowRegencySelect(true);
                         }}
                     >
                         <Building size={20} color="#9CA3AF" className="mr-3" />
-                        <Text className={`flex-1 font-plus-jakarta-medium py-2 pl-4 ${formData.regencyId ? 'text-gray-900' : 'text-gray-400'}`}>
+                        <Text className={`flex-1 font-plus-jakarta-medium py-2 pl-4 ${formData.locationDetail.regencyId ? 'text-gray-900' : 'text-gray-400'}`}>
                             {selectedRegencyName}
                         </Text>
                         <ChevronDown size={20} color="#9CA3AF" />

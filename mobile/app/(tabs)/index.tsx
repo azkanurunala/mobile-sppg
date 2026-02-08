@@ -1,7 +1,6 @@
 
 import React, { useEffect, useState } from 'react';
 import { View, Text, ScrollView, RefreshControl, Image, TouchableOpacity, Dimensions } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
 import { StatusBar } from 'expo-status-bar';
 import { fetchApi } from '@/lib/api';
 import { useAuth } from '@/context/AuthContext';
@@ -220,7 +219,7 @@ export default function DashboardScreen() {
                     </View>
                     {/* Progress Bar inside Hero Card */}
                     <View className="h-2 bg-black/20 rounded-full overflow-hidden">
-                        <View className="h-full bg-white rounded-full" style={{ width: `${getPercentage(stats?.summary.validasiData || 0)}%` }} />
+                        <View className="h-full rounded-full bg-white" style={{ width: `${getPercentage(stats?.summary.validasiData || 0)}%` as any }} />
                     </View>
                  </View>
             </View>
