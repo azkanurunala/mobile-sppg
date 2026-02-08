@@ -1,5 +1,5 @@
 
-import React, { useState, useCallback, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { View, Text, ScrollView, TouchableOpacity, ActivityIndicator, Image, Alert, Dimensions } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { StatusBar } from 'expo-status-bar';
@@ -18,7 +18,7 @@ import {
   XCircle,
   FileText
 } from 'lucide-react-native';
-import { useLocalSearchParams, useRouter, useFocusEffect } from 'expo-router';
+import { useLocalSearchParams, useRouter } from 'expo-router';
 import { fetchApi } from '@/lib/api';
 import * as Clipboard from 'expo-clipboard';
 
@@ -59,11 +59,9 @@ export default function SPPGDetailScreen() {
     }
   };
 
-  useFocusEffect(
-    useCallback(() => {
-        fetchData();
-    }, [id])
-  );
+  useEffect(() => {
+    fetchData();
+  }, [id]);
 
 
 

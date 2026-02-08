@@ -27,21 +27,27 @@ export function useAuth() {
   return useContext(AuthContext);
 }
 
-function useProtectedRoute(user: User | null) {
+export function useProtectedRoute(user: User | null) {
   const segments = useSegments();
   const router = useRouter();
   const rootNavigationState = useRootNavigationState();
 
   useEffect(() => {
+    // Wait until the navigation is ready
     const isNavigationReady = rootNavigationState?.key;
     if (!isNavigationReady) return;
 
     const inAuthGroup = segments[0] === 'auth';
 
-    if (!user && !inAuthGroup) {
-      router.replace('/auth/login');
-    } else if (user && inAuthGroup) {
-      router.replace('/(tabs)/sppg');
+    try {
+      if (!user && !inAuthGroup) {
+        router.replace('/auth/login');
+      } else if (user && inAuthGroup) {
+        router.replace('/(tabs)/sppg');
+      }
+    } catch (e) {
+      // Catch navigation context issues during re-renders
+      console.warn('Navigation guard error:', e);
     }
   }, [user, segments, rootNavigationState?.key]);
 }
@@ -75,7 +81,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     loadUser();
   }, []);
 
-  useProtectedRoute(user);
+  // useProtectedRoute is now called in the root layout after the Stack is available or in a separate guard component
 
   const signIn = async (accessToken: string, refreshToken: string, newUser: User) => {
     await SecureStore.setItemAsync('access_token', accessToken);

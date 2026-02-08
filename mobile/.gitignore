@@ -41,10 +41,15 @@ yarn-error.log*
 *.orig.*
 
 # Android
+android/.gradle/
+android/build/
+android/app/build/
 # If you are NOT using the "bare" workflow, you can uncomment the following line
 # android/
 
 # iOS
+ios/build/
+ios/Pods/
 # If you are NOT using the "bare" workflow, you can uncomment the following line
 # ios/
 
