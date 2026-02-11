@@ -3,6 +3,7 @@ import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import bcrypt from 'bcryptjs';
 import { signAccessToken, signRefreshToken } from '@/lib/jwt';
+import { getPhoneNumberVariations } from '@/lib/utils';
 
 export async function POST(request: Request) {
   try {
@@ -16,20 +17,21 @@ export async function POST(request: Request) {
         return NextResponse.json({ error: 'Identifier (email or phone) and password required' }, { status: 400 });
     }
 
-    // Find user by phone number or email
-    const { getPhoneNumberVariations } = require('@/lib/utils');
-    
     // Check if it's likely a phone number (mostly digits or starts with +)
-    const isLikelyPhone = /^\+?[\d]+$/.test(loginId);
+    // Strip common separators for check
+    const cleanInput = loginId.replace(/[\s\-\(\)]/g, '');
+    const isLikelyPhone = /^\+?[\d]+$/.test(cleanInput);
+    
     let searchCriteria: any[] = [{ email: loginId }];
     
     if (isLikelyPhone) {
-        const variations = getPhoneNumberVariations(loginId);
+        const variations = getPhoneNumberVariations(cleanInput);
         searchCriteria = [
             ...searchCriteria,
             ...variations.map((v: string) => ({ phoneNumber: v }))
         ];
     } else {
+        // Even if not strictly a phone format, try searching exact match as fallback
         searchCriteria.push({ phoneNumber: loginId });
     }
 
