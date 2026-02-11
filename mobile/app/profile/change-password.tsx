@@ -7,9 +7,11 @@ import { ChevronLeft, Eye, EyeOff, ShieldCheck, Info, Check } from 'lucide-react
 import ConfirmationModal from '@/components/ui/ConfirmationModal';
 import { useRouter } from 'expo-router';
 import { fetchApi } from '@/lib/api';
+import { useAuth } from '@/context/AuthContext';
 
 export default function ChangePasswordScreen() {
   const router = useRouter();
+  const { isBiometricEnabled, updateBiometricSecret } = useAuth();
   const [currentPassword, setCurrentPassword] = useState('');
   const [newPassword, setNewPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
@@ -69,6 +71,11 @@ export default function ChangePasswordScreen() {
                 newPassword
             })
         });
+
+        // If biometric is enabled, update the stored secret with new password
+        if (isBiometricEnabled) {
+            await updateBiometricSecret(newPassword);
+        }
 
         showAlert('Sukses', 'Kata sandi berhasil diubah', 'success', () => router.back());
     } catch (error: any) {

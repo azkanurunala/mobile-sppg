@@ -14,7 +14,23 @@ export default function LoginScreen() {
   const [showPassword, setShowPassword] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const { signIn } = useAuth();
+  const { signIn, loginWithBiometric, isBiometricEnabled } = useAuth();
+
+  const handleBiometricLogin = async () => {
+    setError(null);
+    setIsSubmitting(true);
+    try {
+        const result = await loginWithBiometric();
+        if (!result.success) {
+            setError(result.message || 'Login biometrik gagal.');
+        }
+        // Success is handled by AuthContext (signIn called internally)
+    } catch (err) {
+        setError('Terjadi kesalahan saat login biometrik.');
+    } finally {
+        setIsSubmitting(false);
+    }
+  };
 
   const handleLogin = async () => {
     if (!identifier || !password) {
@@ -37,7 +53,15 @@ export default function LoginScreen() {
         await signIn(response.accessToken, response.refreshToken, response.user);
       }
     } catch (error: any) {
-      setError(error.message || 'Kombinasi nomor handphone atau kata sandi tidak sesuai.');
+      // Check for specific error codes or messages if available
+      // as per requirement: "Nomor HP atau kata sandi tidak sesuai" only for auth failures
+      console.error('Login error:', error);
+      
+      if (error.status === 401 || error.status === 400) {
+          setError('Nomor HP atau kata sandi tidak sesuai.');
+      } else {
+          setError('Terjadi kesalahan saat menghubungi server. Silakan coba lagi.');
+      }
     } finally {
       setIsSubmitting(false);
     }
@@ -150,19 +174,27 @@ export default function LoginScreen() {
                     </TouchableOpacity>
 
                     {/* Divider */}
-                    <View className="flex-row items-center my-2">
-                        <View className="flex-1 h-[1px] bg-gray-100" />
-                        <Text className="text-gray-400 text-xs font-plus-jakarta-semibold mx-4">Atau</Text>
-                        <View className="flex-1 h-[1px] bg-gray-100" />
-                    </View>
+                    {isBiometricEnabled && (
+                        <View className="flex-row items-center my-2">
+                            <View className="flex-1 h-[1px] bg-gray-100" />
+                            <Text className="text-gray-400 text-xs font-plus-jakarta-semibold mx-4">Atau</Text>
+                            <View className="flex-1 h-[1px] bg-gray-100" />
+                        </View>
+                    )}
 
                     {/* Biometric Button */}
-                    <TouchableOpacity className="w-full bg-orange-50 border border-orange-100 rounded-2xl h-[58px] flex-row items-center justify-center active:bg-orange-100 transition-all">
-                        <Fingerprint size={20} className="text-orange-500 mr-2" color="#F97316" />
-                        <Text className="text-orange-600 font-bold font-plus-jakarta-extrabold text-sm ml-2">
-                            Masuk dengan Biometrik
-                        </Text>
-                    </TouchableOpacity>
+                    {isBiometricEnabled && (
+                        <TouchableOpacity 
+                            className="w-full bg-orange-50 border border-orange-100 rounded-2xl h-[58px] flex-row items-center justify-center active:bg-orange-100 transition-all"
+                            onPress={handleBiometricLogin}
+                            disabled={isSubmitting}
+                        >
+                            <Fingerprint size={20} className="text-orange-500 mr-2" color="#F97316" />
+                            <Text className="text-orange-600 font-bold font-plus-jakarta-extrabold text-sm ml-2">
+                                Masuk dengan Biometrik
+                            </Text>
+                        </TouchableOpacity>
+                    )}
 
                     {/* Register Link */}
                     <View className="flex-row justify-center mt-6 mb-8">

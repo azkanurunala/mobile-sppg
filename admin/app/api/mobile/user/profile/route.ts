@@ -19,6 +19,10 @@ export async function PUT(request: Request) {
 
     const body = await request.json();
     const { name, phoneNumber, email, regencyId } = body;
+    
+    // Import helper (assuming standard path, will fix if error)
+    const { formatPhoneNumber } = require('@/lib/utils');
+    const formattedPhone = phoneNumber ? formatPhoneNumber(phoneNumber) : phoneNumber;
 
     // Transactional update for User and Profile
     await prisma.$transaction(async (tx) => {
@@ -27,7 +31,7 @@ export async function PUT(request: Request) {
             where: { id: decoded.userId },
             data: {
                 name, 
-                phoneNumber,
+                phoneNumber: formattedPhone,
                 // Only update email if provided and valid. 
                 // Note: Changing email might require re-verification or check uniqueness logic.
             }

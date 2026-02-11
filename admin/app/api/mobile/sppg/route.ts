@@ -8,6 +8,8 @@ export async function GET(request: Request) {
     const { searchParams } = new URL(request.url);
     const status = searchParams.get('status');
     const search = searchParams.get('search');
+    const districtId = searchParams.get('districtId');
+    const villageId = searchParams.get('villageId');
     const page = parseInt(searchParams.get('page') || '1');
     const limit = parseInt(searchParams.get('limit') || '10');
     const skip = (page - 1) * limit;
@@ -16,6 +18,12 @@ export async function GET(request: Request) {
 
     if (status && status !== 'Semua Status') {
         where.status = { name: status };
+    }
+
+    if (villageId) {
+        where.villageId = villageId;
+    } else if (districtId) {
+        where.village = { districtId: districtId };
     }
 
     if (search) {
@@ -47,6 +55,20 @@ export async function GET(request: Request) {
         where.regencyId = user.korwilProfile.assignedRegencyId;
     }
 
+    // Dynamic sorting
+    const sortBy = searchParams.get('sortBy') || 'created_at';
+    const order = searchParams.get('order') || 'desc';
+
+    // Map frontend field names to Prisma field names
+    const sortFieldMap: Record<string, string> = {
+      'created_at': 'createdAt',
+      'updated_at': 'updatedAt',
+      'code': 'id', // code maps to id in DB
+    };
+
+    const prismaField = sortFieldMap[sortBy] || 'updatedAt';
+    const prismaOrder = order === 'asc' ? 'asc' : 'desc';
+
     const [sppgs, total] = await Promise.all([
         prisma.sPPG.findMany({
             where,
@@ -67,7 +89,7 @@ export async function GET(request: Request) {
                     }
                 }
             },
-            orderBy: { updatedAt: 'desc' },
+            orderBy: { [prismaField]: prismaOrder },
             skip,
             take: limit
         }),

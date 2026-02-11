@@ -59,7 +59,9 @@ export async function GET(request: Request) {
       locationDetail,
       nik: user.korwilProfile?.nik,
       academicTitle: user.korwilProfile?.academicTitle,
-      position: user.korwilProfile?.position
+      position: user.korwilProfile?.position,
+      regencyId: user.korwilProfile?.assignedRegencyId,
+      provinceId: user.korwilProfile?.assignedRegency?.provinceId
     });
 
   } catch (error) {

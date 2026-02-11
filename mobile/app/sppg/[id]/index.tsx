@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect } from 'react';
-import { View, Text, ScrollView, TouchableOpacity, ActivityIndicator, Image, Alert, Dimensions } from 'react-native';
+import { View, Text, ScrollView, TouchableOpacity, ActivityIndicator, Image, Alert, Dimensions, Linking, Platform } from 'react-native';
 import { StatusBar } from 'expo-status-bar';
 import { 
   ChevronLeft, 
@@ -74,6 +74,32 @@ export default function SPPGDetailScreen() {
   const copyToClipboard = async (text: string) => {
     await Clipboard.setStringAsync(text);
     Alert.alert('Disalin', 'Teks berhasil disalin ke clipboard');
+  };
+
+  const openGoogleMaps = () => {
+    const lat = detail.lat;
+    const lng = detail.long;
+    
+    if (!lat || !lng) {
+        Alert.alert("Lokasi Tidak Tersedia", "Koordinat lokasi belum diatur.");
+        return;
+    }
+
+    const label = encodeURIComponent(`SPPG ${detail.code}`);
+    
+    const scheme = Platform.select({ ios: 'maps:0,0?q=', android: 'geo:0,0?q=' });
+    const latLng = `${lat},${lng}`;
+    const url = Platform.select({
+      ios: `${scheme}${label}@${latLng}`,
+      android: `${scheme}${latLng}(${label})`
+    });
+
+    if (url) {
+        Linking.openURL(url).catch(err => {
+            // Fallback to browser
+            Linking.openURL(`https://www.google.com/maps/search/?api=1&query=${lat},${lng}`);
+        });
+    }
   };
 
   if (loading) {
@@ -187,16 +213,20 @@ export default function SPPGDetailScreen() {
                     <View className="flex-row space-x-6">
                         <View className='mr-4'>
                             <Text className="text-gray-400 text-xs font-bold mb-0.5">LAT</Text>
-                            <Text className="text-gray-900 font-bold text-base font-plus-jakarta-extrabold">{detail.latitude || '-3.321456'}</Text>
+                            <Text className="text-gray-900 font-bold text-base font-plus-jakarta-extrabold">{detail.lat || '-'}</Text>
                         </View>
                         <View>
                             <Text className="text-gray-400 text-xs font-bold mb-0.5">LONG</Text>
-                            <Text className="text-gray-900 font-bold text-base font-plus-jakarta-extrabold">{detail.longitude || '128.987654'}</Text>
+                            <Text className="text-gray-900 font-bold text-base font-plus-jakarta-extrabold">{detail.long || '-'}</Text>
                         </View>
                     </View>
                 </View>
-                <TouchableOpacity className="w-12 h-12 bg-blue-600 rounded-2xl items-center justify-center shadow-md shadow-blue-300">
-                    <MapPin size={24} color="white" fill="white" />
+                <TouchableOpacity 
+                    className="w-12 h-12 bg-white border border-gray-200 rounded-2xl items-center justify-center shadow-sm"
+                    onPress={openGoogleMaps}
+                >
+                    {/* Using an image or a specific icon to represent Google Maps better if possible, otherwise MapIcon */}
+                    <MapIcon size={24} color="#2563EB" /> 
                 </TouchableOpacity>
             </View>
         </View>
@@ -276,8 +306,8 @@ export default function SPPGDetailScreen() {
                              </View>
 
                              {/* Contact Info */}
-                             <View className="space-y-4">
-                                <View className="bg-gray-50 p-4 rounded-2xl flex-row items-center justify-between">
+                             <View className="py-2">
+                                <View className="bg-gray-50 p-4 rounded-2xl flex-row items-center justify-between mb-2">
                                     <View className="flex-row items-center">
                                         <Mail size={18} color="#6B7280" className="mr-3" />
                                         <View className="ml-2">

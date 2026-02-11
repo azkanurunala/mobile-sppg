@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, Text, TouchableOpacity, ScrollView, Switch, Image, Alert } from 'react-native';
+import { View, Text, TouchableOpacity, ScrollView, Switch, Image, Alert, Modal, TextInput, ActivityIndicator } from 'react-native';
 import { StatusBar } from 'expo-status-bar';
 import { useAuth } from '@/context/AuthContext';
 import { useRouter } from 'expo-router';
@@ -17,10 +17,33 @@ import {
 import ConfirmationModal from '@/components/ui/ConfirmationModal';
 
 export default function ProfileScreen() {
-  const { user, signOut } = useAuth();
+  const { user, signOut, isBiometricSupported, isBiometricEnabled, enableBiometric, disableBiometric } = useAuth();
   const router = useRouter();
   const [showLogoutModal, setShowLogoutModal] = useState(false);
   const [loggingOut, setLoggingOut] = useState(false);
+  
+  // Biometric Logic
+  const [showPasswordModal, setShowPasswordModal] = useState(false);
+  const [password, setPassword] = useState('');
+  const [isUpdatingBiometric, setIsUpdatingBiometric] = useState(false);
+
+  const handleEnableBiometric = async () => {
+    setIsUpdatingBiometric(true);
+    try {
+        const success = await enableBiometric(password);
+        if (success) {
+            Alert.alert("Sukses", "Login Biometrik berhasil diaktifkan.");
+            setShowPasswordModal(false);
+            setPassword('');
+        } else {
+            Alert.alert("Gagal", "Aktivasi gagal. Pastikan kata sandi Anda benar dan coba lagi.");
+        }
+    } catch (error) {
+        Alert.alert("Error", "Gagal mengaktifkan biometrik.");
+    } finally {
+        setIsUpdatingBiometric(false);
+    }
+  };
 
   const handleLogout = async () => {
     setLoggingOut(true);
@@ -107,19 +130,32 @@ export default function ProfileScreen() {
           <Text className="text-gray-500 font-bold font-plus-jakarta-extrabold mb-4 text-sm uppercase tracking-wider">Keamanan</Text>
           
           <View className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden mb-6">
-              {/* Biometric Toggle */}
-              <TouchableOpacity className="flex-row items-center justify-between p-4 border-b border-gray-50">
-                  <View className="flex-row items-center">
-                      <View className="w-10 h-10 bg-purple-100 rounded-full items-center justify-center mr-3">
-                          <ShieldCheck size={20} color="#9333EA" />
+{/* Biometric Toggle */}
+              {isBiometricSupported && (
+                  <View className="flex-row items-center justify-between p-4 border-b border-gray-50">
+                      <View className="flex-row items-center">
+                          <View className="w-10 h-10 bg-purple-100 rounded-full items-center justify-center mr-3">
+                              <Fingerprint size={20} color="#9333EA" />
+                          </View>
+                          <View>
+                              <Text className="text-gray-900 font-bold text-base font-plus-jakarta-extrabold">Login dengan Biometrik</Text>
+                              <Text className="text-gray-500 text-sm mt-0.5">Aktifkan keamanan biometrik</Text>
+                          </View>
                       </View>
-                      <View>
-                          <Text className="text-gray-900 font-bold text-base font-plus-jakarta-extrabold">Login dengan Biometrik</Text>
-                          <Text className="text-gray-500 text-sm mt-0.5">Aktifkan keamanan biometrik</Text>
-                      </View>
+                      <Switch 
+                        value={isBiometricEnabled}
+                        onValueChange={(value) => {
+                            if (value) {
+                                setShowPasswordModal(true);
+                            } else {
+                                disableBiometric();
+                            }
+                        }}
+                        trackColor={{ false: "#E5E7EB", true: "#DBEAFE" }}
+                        thumbColor={isBiometricEnabled ? "#2563EB" : "#F3F4F6"}
+                      />
                   </View>
-                  <ChevronRight size={20} color="#9CA3AF" />
-              </TouchableOpacity>
+              )}
 
               {/* Change Password */}
               <TouchableOpacity 
@@ -138,6 +174,57 @@ export default function ProfileScreen() {
                   <ChevronRight size={20} color="#9CA3AF" />
               </TouchableOpacity>
           </View>
+
+          <Modal
+            visible={showPasswordModal}
+            transparent
+            animationType="fade"
+            onRequestClose={() => setShowPasswordModal(false)}
+          >
+            <View className="flex-1 bg-black/50 justify-center items-center px-4">
+                <View className="bg-white w-full max-w-sm rounded-3xl p-6">
+                    <Text className="text-gray-900 font-bold font-plus-jakarta-extrabold text-xl mb-2 text-center">
+                        Verifikasi Kata Sandi
+                    </Text>
+                    <Text className="text-gray-500 font-plus-jakarta-semibold text-center mb-6">
+                        Masukkan kata sandi Anda untuk mengaktifkan Login Biometrik.
+                    </Text>
+
+                    <View className="bg-gray-50 border border-gray-200 rounded-xl px-4 h-[50px] justify-center mb-4">
+                        <TextInput 
+                            placeholder="Kata Sandi"
+                            secureTextEntry
+                            value={password}
+                            onChangeText={setPassword}
+                            className="font-plus-jakarta-semibold text-gray-900 text-base w-full"
+                        />
+                    </View>
+
+                    <View className="flex-row space-x-3">
+                        <TouchableOpacity 
+                            className="flex-1 h-12 rounded-xl items-center justify-center bg-gray-100 mx-2"
+                            onPress={() => {
+                                setShowPasswordModal(false);
+                                setPassword('');
+                            }}
+                        >
+                            <Text className="text-gray-600 font-bold font-plus-jakarta-extrabold">Batal</Text>
+                        </TouchableOpacity>
+                        <TouchableOpacity 
+                            className="flex-1 h-12 rounded-xl items-center justify-center bg-primary mx-2"
+                            onPress={handleEnableBiometric}
+                            disabled={!password}
+                        >
+                           {isUpdatingBiometric ? (
+                               <ActivityIndicator color="white" size="small" />
+                           ) : (
+                               <Text className="text-white font-bold font-plus-jakarta-extrabold">Aktifkan</Text>
+                           )}
+                        </TouchableOpacity>
+                    </View>
+                </View>
+            </View>
+          </Modal>
 
           <Text className="text-center text-gray-400 text-sm font-plus-jakarta-semibold mb-6">SPPG Mobile Versi 1.0.0</Text>
 

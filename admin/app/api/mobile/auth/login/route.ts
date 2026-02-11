@@ -17,12 +17,25 @@ export async function POST(request: Request) {
     }
 
     // Find user by phone number or email
+    const { getPhoneNumberVariations } = require('@/lib/utils');
+    
+    // Check if it's likely a phone number (mostly digits or starts with +)
+    const isLikelyPhone = /^\+?[\d]+$/.test(loginId);
+    let searchCriteria: any[] = [{ email: loginId }];
+    
+    if (isLikelyPhone) {
+        const variations = getPhoneNumberVariations(loginId);
+        searchCriteria = [
+            ...searchCriteria,
+            ...variations.map((v: string) => ({ phoneNumber: v }))
+        ];
+    } else {
+        searchCriteria.push({ phoneNumber: loginId });
+    }
+
     const user = await prisma.user.findFirst({
       where: {
-        OR: [
-          { phoneNumber: loginId },
-          { email: loginId }
-        ]
+        OR: searchCriteria
       },
       include: {
         korwilProfile: {
@@ -76,7 +89,9 @@ export async function POST(request: Request) {
         phoneNumber: user.phoneNumber,
         role: user.role,
         location: locationName,
-        nik: user.korwilProfile?.nik
+        nik: user.korwilProfile?.nik,
+        regencyId: user.korwilProfile?.assignedRegencyId,
+        provinceId: user.korwilProfile?.assignedRegency?.provinceId
       },
     });
   } catch (error) {
